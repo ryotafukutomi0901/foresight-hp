@@ -1,24 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Zen_Kaku_Gothic_New, Archivo } from "next/font/google";
+import { Shippori_Mincho, Archivo } from "next/font/google";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import OpeningSequence from "@/components/opening/OpeningSequence";
+import AtmosphereMount from "@/components/three/AtmosphereMount";
 import "./globals.css";
 
-// 和文: 静かで精密なゴシック。明朝より「視野・判断力」の語感に合う。
-//
-// preload: false は必須。和文フォントは約120のunicode-rangeサブセットに分割されており、
-// 既定(preload: true)だと全サブセットを先読みして数MBを転送してしまう。
-// falseにすると、ブラウザがページ内の文字に必要なサブセットだけを取得する。
-// ウェイトも実際に使う300/400に絞る(1ウェイト増えるごとに全サブセットが増える)。
-const zenKaku = Zen_Kaku_Gothic_New({
-  variable: "--font-zen-kaku",
+/*
+ * 和文: 明朝。
+ * ゴシックは均一で力強いが、余白を主役にした静かな画面では硬く平板に見えた。
+ * 明朝は縦画と横画の抑揚があり、大きな余白と組んだときに「静けさ」と品が出る。
+ *
+ * preload: false は必須。和文フォントは約120のunicode-rangeサブセットに分割されており、
+ * 既定(preload: true)だと全サブセットを先読みして数MBを転送してしまう。
+ * falseにすると、ブラウザがページ内の文字に必要なサブセットだけを取得する。
+ * ウェイトも本文400・強調600の2つに絞る(1ウェイト増えるごとに全サブセットが増える)。
+ */
+const shippori = Shippori_Mincho({
+  variable: "--font-shippori",
   subsets: ["latin"],
-  weight: ["300", "400"],
+  weight: ["400", "600"],
   display: "swap",
   preload: false,
-  fallback: ["Hiragino Sans", "Hiragino Kaku Gothic ProN", "Meiryo", "sans-serif"],
+  fallback: ["Hiragino Mincho ProN", "Yu Mincho", "serif"],
 });
 
 // 欧文: 大型ラテン見出し(SEE BEYOND THE CONDITION.)とラベル用のグロテスク。
@@ -76,7 +81,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={`${zenKaku.variable} ${archivo.variable}`}>
+    <html lang="ja" className={`${shippori.variable} ${archivo.variable}`}>
       <body className="bg-void text-ink">
         {/* キーボード利用者が本文へ直行できるようにする */}
         <a
@@ -91,9 +96,17 @@ export default function RootLayout({
           position:fixed がその要素基準になり、画面に固定されなくなる。
         */}
         <OpeningSequence />
+        {/*
+          常設の3D空間。全セクションの背面に敷きっぱなしにすることで、
+          セクションが「並んだ平面」ではなく「同じ空間の中の出来事」になる。
+          本文側は背景を透過させ、この空間が透けて見える構造にしている。
+        */}
+        <AtmosphereMount />
         <Header />
         <SmoothScrollProvider>
-          <main id="main">{children}</main>
+          <main id="main" className="relative z-10">
+            {children}
+          </main>
           <Footer />
         </SmoothScrollProvider>
       </body>

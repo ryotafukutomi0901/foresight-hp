@@ -77,7 +77,7 @@ export default function Sell() {
       ref={scope}
       id="sell"
       aria-labelledby="sell-heading"
-      className="section-y relative bg-base"
+      className="section-y relative"
     >
       <div className="container-x">
         <SectionHead index={SELL.index} label={SELL.label} id="sell-heading" />
@@ -96,7 +96,7 @@ export default function Sell() {
           <div className="flex flex-col justify-end">
             <p
               data-sell-lead
-              className="text-display-s font-light leading-relaxed text-ink"
+              className="text-display-s font-normal leading-relaxed text-ink"
             >
               {SELL.lead[0]}
               <br />

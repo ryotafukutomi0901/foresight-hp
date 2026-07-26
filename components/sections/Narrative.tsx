@@ -2,19 +2,29 @@
 
 import Image from "next/image";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
-import { NARRATIVE } from "@/lib/content";
+import { charsRise, layerIn, trackIn } from "@/lib/motion";
+import { viewProgress } from "@/lib/viewProgress";
+import { NARRATIVE, NARRATIVE_SHOTS } from "@/lib/content";
 
 /*
- * THE NARRATIVE — 10枚のビジュアルによる物語。
+ * THE NARRATIVE — 一台の車が次の可能性へ進むまで。
  *
- * 「画像を並べる」のではなく「視点が移り変わっていく」体験にする。
- * そのため以下を禁じ手としている:
- *   - カード化・グリッド化(全部を一度に見せると"一覧"になり物語が消える)
- *   - 単純なopacityフェード(出現ではなく"見えるようになる"を作れない)
+ * 10枚のビジュアルは **3D空間側(NarrativeCorridor)** にあり、
+ * スクロールに合わせてカメラがその間を通過する。
+ * このコンポーネントが受け持つのは
+ *   1. スクロール進行度の書き出し(3Dへの唯一の受け渡し)
+ *   2. 文字の出現
+ *   3. 支援技術・検索エンジン向けの図版情報
+ * の3つだけで、画像を<img>として画面に並べることはしない。
  *
- * 素材の実寸は267×296pxしかないため、画面いっぱいには引き伸ばさない。
- * 最大でも表示幅520px程度に留め、周囲の黒と余白を主役にする。
- * 結果として「余白が主役」というブランド方針と、素材の限界が一致する。
+ * なぜ画像をDOMに置かないか:
+ *   DOMに置くと、どれだけ動かしても「平面の上を滑るカード」にしかならない。
+ *   3Dに置けば霧・被写界深度・グレインが画像自体に掛かり、
+ *   手前にピントが合って奥がボケる。これは平面合成では作れない。
+ *
+ * ただしcanvasは支援技術から読めないため、同じ内容を
+ * <figure>+<figcaption> として視覚的非表示で必ず残している。
+ * reduced-motion時は3Dを起動しないため、その場合だけ画像を可視化する。
  */
 
 export default function Narrative() {
@@ -25,96 +35,61 @@ export default function Narrative() {
       {
         motion: "(prefers-reduced-motion: no-preference)",
         reduced: "(prefers-reduced-motion: reduce)",
-        desktop: "(min-width: 768px)",
       },
       (ctx) => {
-        const { reduced, desktop } = ctx.conditions as Record<string, boolean>;
+        const { reduced } = ctx.conditions as Record<string, boolean>;
         if (reduced) return;
 
-        // 各楽章の見出し
-        gsap.utils.toArray<HTMLElement>("[data-movement]").forEach((mv) => {
-          gsap.from(mv.querySelectorAll("[data-movement-line]"), {
-            yPercent: 110,
-            duration: 1.1,
-            ease: "brandOut",
-            stagger: 0.1,
-            scrollTrigger: { trigger: mv, start: "top 76%", once: true },
-          });
+        /*
+         * 3D回廊への唯一の受け渡し点。
+         * このセクションを通過するスクロール量が、回廊の全長に対応する。
+         */
+        const corridorST = gsap.utils.toArray<HTMLElement>([scope.current!]);
+        gsap.to(corridorST, {
+          scrollTrigger: {
+            trigger: scope.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+            onUpdate: (self) => {
+              // 端で画像が唐突に消えないよう、前後に余白を持たせて写像する
+              viewProgress.corridor = gsap.utils.clamp(
+                0,
+                1,
+                (self.progress - 0.06) / 0.88,
+              );
+            },
+          },
         });
 
-        /*
-         * 各カットは「霧から像が結ばれる」ように現れる。
-         * blur → sharp と、わずかなclip revealを重ねる。
-         */
-        gsap.utils.toArray<HTMLElement>("[data-shot]").forEach((shot, i) => {
-          const media = shot.querySelector("[data-shot-media]");
-          const text = shot.querySelectorAll("[data-shot-text]");
+        // 楽章の見出し
+        gsap.utils.toArray<HTMLElement>("[data-movement]").forEach((mv) => {
+          const title = mv.querySelector<HTMLElement>("[data-movement-title]");
+          const index = mv.querySelector<HTMLElement>("[data-movement-index]");
 
+          const tl = gsap.timeline({
+            scrollTrigger: { trigger: mv, start: "top 74%", once: true },
+          });
+
+          if (index) tl.add(trackIn(index, { duration: 1.2 }), 0);
+          if (title) tl.add(charsRise(title).tween, 0.2);
+          tl.add(layerIn(mv.querySelectorAll("[data-movement-lead]")), 0.5);
+        });
+
+        // 各カットの文字。3D側で画像が近づくのに同期して現れる
+        gsap.utils.toArray<HTMLElement>("[data-caption]").forEach((cap) => {
           gsap
             .timeline({
-              scrollTrigger: { trigger: shot, start: "top 74%", once: true },
+              scrollTrigger: { trigger: cap, start: "top 78%", once: true },
             })
-            .fromTo(
-              media,
-              {
-                autoAlpha: 0,
-                filter: "blur(22px)",
-                scale: 1.06,
-                clipPath: "inset(14% 14% 14% 14%)",
-              },
-              {
-                autoAlpha: 1,
-                filter: "blur(0px)",
-                scale: 1,
-                clipPath: "inset(0% 0% 0% 0%)",
-                duration: 1.5,
-                ease: "brandOut",
-              },
-            )
-            .from(
-              text,
-              {
-                autoAlpha: 0,
-                y: 20,
-                duration: 0.9,
-                ease: "brandOut",
-                stagger: 0.1,
-              },
-              "-=0.95",
+            .add(trackIn(cap.querySelectorAll("[data-caption-kicker]")), 0)
+            .add(
+              layerIn(cap.querySelectorAll("[data-caption-line]"), {
+                stagger: 0.12,
+              }),
+              0.15,
             );
-
-          // 奥行き。デスクトップのみ、カットごとに逆向きの微パララックス。
-          if (desktop && media) {
-            gsap.fromTo(
-              media,
-              { yPercent: i % 2 === 0 ? 5 : -5 },
-              {
-                yPercent: i % 2 === 0 ? -5 : 5,
-                ease: "none",
-                scrollTrigger: { trigger: shot, start: "top bottom", end: "bottom top", scrub: true },
-              },
-            );
-          }
         });
-
-        // フィナーレ: 道が伸びていくように、横方向へゆっくり流す
-        const finale = scope.current?.querySelector("[data-finale-media]");
-        if (finale && desktop) {
-          gsap.fromTo(
-            finale,
-            { xPercent: -4 },
-            {
-              xPercent: 4,
-              ease: "none",
-              scrollTrigger: {
-                trigger: "[data-finale]",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: true,
-              },
-            },
-          );
-        }
       },
     );
   }, []);
@@ -124,128 +99,139 @@ export default function Narrative() {
       ref={scope}
       id="narrative"
       aria-labelledby="narrative-heading"
-      className="relative bg-void"
+      className="relative"
     >
       <h2 id="narrative-heading" className="sr-only">
         一台の車が次の可能性へ進むまで
       </h2>
 
+      {/*
+        図版情報。3D側に描かれる10枚と1対1で対応する。
+        通常は視覚的に非表示(3Dが本体)、reduced-motion時のみ可視化して
+        画像そのものを静的に読めるようにする。
+      */}
+      <ul data-narrative-figures className="sr-only">
+        {NARRATIVE_SHOTS.map((shot) => (
+          <li key={shot.src}>
+            <figure>
+              <div
+                data-narrative-figure-media
+                className="relative w-full max-w-[420px]"
+                style={{ aspectRatio: "267 / 296" }}
+              >
+                <Image
+                  src={shot.src}
+                  alt={shot.alt}
+                  fill
+                  sizes="(max-width: 768px) 90vw, 420px"
+                  className="art-blend object-contain"
+                />
+              </div>
+              <figcaption>
+                <span className="label text-ink-faint">{shot.kicker}</span>
+                <p className="mt-4 text-display-s text-ink">
+                  {shot.caption[0]}
+                  {shot.caption[1] ? (
+                    <>
+                      <br />
+                      {shot.caption[1]}
+                    </>
+                  ) : null}
+                </p>
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+      </ul>
+
+      {/* 楽章の見出しと、3Dの通過に同期する文字 */}
       {NARRATIVE.movements.map((mv) => (
         <div key={mv.id} className="section-y">
           <div data-movement className="container-x">
-            <div className="flex items-baseline gap-5">
-              <span aria-hidden className="label text-ink-faint">
-                {mv.index}
-              </span>
-              <span
-                aria-hidden
-                className="h-px w-16 shrink-0 bg-rule-strong"
-              />
-            </div>
-            <h3 className="mt-8 text-display-m font-normal leading-[1.25] text-ink">
-              <span className="line-mask">
-                <span data-movement-line className="block">
-                  {mv.title}
-                </span>
-              </span>
+            <span
+              data-movement-index
+              aria-hidden
+              className="label block text-ink-faint"
+            >
+              {mv.index}
+            </span>
+            <h3 data-movement-title className="mt-8 text-display-l text-ink">
+              {mv.title}
             </h3>
-            <p className="mt-6 max-w-md text-body-l leading-loose text-ink-soft">
+            <p
+              data-movement-lead
+              className="mt-8 max-w-md text-body-l leading-loose text-ink-soft"
+            >
               {mv.lead}
             </p>
           </div>
 
-          {/* カット。左右交互に置き、単調な中央揃えの連続を避ける */}
-          <div className="mt-20 flex flex-col gap-28 sm:gap-36">
+          {/*
+            カットごとの文字。画像は3D空間側にあるため、
+            ここは大きく間隔を空けて「通過する時間」を作る。
+          */}
+          <div className="mt-20 flex flex-col gap-[26vh]">
             {mv.shots.map((shot, i) => (
-              <figure
+              <div
                 key={shot.src}
-                data-shot
-                className={`container-x flex flex-col items-start gap-8 md:flex-row md:items-center md:gap-16 ${
-                  i % 2 === 1 ? "md:flex-row-reverse" : ""
+                data-caption
+                aria-hidden
+                className={`container-x flex ${
+                  i % 2 === 1 ? "justify-end text-right" : "justify-start"
                 }`}
               >
-                <div
-                  data-shot-media
-                  className="relative w-full max-w-[520px] shrink-0 md:w-[46%]"
-                  style={{ aspectRatio: "267 / 296" }}
-                >
-                  <Image
-                    src={shot.src}
-                    alt={shot.alt}
-                    fill
-                    sizes="(max-width: 768px) 90vw, 46vw"
-                    className="art-blend object-contain"
-                  />
-                </div>
-
-                <figcaption className="md:flex-1">
-                  <span data-shot-text className="label block text-ink-faint">
+                <div className="max-w-[22rem] [word-break:keep-all] [overflow-wrap:anywhere]">
+                  <span
+                    data-caption-kicker
+                    className="label block text-ink-faint"
+                  >
                     {shot.kicker}
                   </span>
                   <p
-                    data-shot-text
-                    className="mt-6 text-display-s font-light leading-relaxed text-ink"
+                    data-caption-line
+                    className="mt-6 text-display-s leading-relaxed text-ink"
                   >
                     {shot.caption[0]}
-                    <br />
+                  </p>
+                  <p
+                    data-caption-line
+                    className="text-display-s leading-relaxed text-ink"
+                  >
                     {shot.caption[1]}
                   </p>
-                </figcaption>
-              </figure>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       ))}
 
       {/* IV — 次の可能性へ */}
-      <div data-finale className="section-y">
-        <figure className="container-x">
-          <div data-movement className="flex items-baseline gap-5">
-            <span aria-hidden className="label text-ink-faint">
-              {NARRATIVE.finale.index}
-            </span>
-            <span aria-hidden className="h-px w-16 shrink-0 bg-rule-strong" />
-            <span className="label text-ink">{NARRATIVE.finale.kicker}</span>
-          </div>
-
-          <div
-            data-shot
-            className="mt-14 flex flex-col items-start gap-12 md:flex-row md:items-center md:gap-20"
+      <div className="section-y">
+        <div data-movement className="container-x">
+          <span
+            data-movement-index
+            aria-hidden
+            className="label block text-ink-faint"
           >
-            <div
-              data-shot-media
-              className="relative w-full max-w-[560px] shrink-0 md:w-1/2"
-              style={{ aspectRatio: "267 / 296" }}
-            >
-              <span data-finale-media className="block h-full w-full">
-                <Image
-                  src={NARRATIVE.finale.src}
-                  alt={NARRATIVE.finale.alt}
-                  fill
-                  sizes="(max-width: 768px) 90vw, 50vw"
-                  className="art-blend object-contain"
-                />
-              </span>
-            </div>
-
-            <figcaption className="md:flex-1">
-              <p
-                data-shot-text
-                className="text-display-m font-normal leading-[1.3] text-ink"
-              >
-                {NARRATIVE.finale.headline[0]}
-                <br />
-                {NARRATIVE.finale.headline[1]}
-              </p>
-              <p
-                data-shot-text
-                className="mt-10 text-body-l leading-loose text-ink-soft"
-              >
-                {NARRATIVE.finale.closing}
-              </p>
-            </figcaption>
-          </div>
-        </figure>
+            {NARRATIVE.finale.index}
+          </span>
+          <h3 data-movement-title className="mt-8 text-display-l text-ink">
+            {NARRATIVE.finale.headline[0]}
+          </h3>
+          <p
+            data-movement-lead
+            className="mt-8 max-w-lg text-display-s leading-relaxed text-ink-soft"
+          >
+            {NARRATIVE.finale.headline[1]}
+          </p>
+          <p
+            data-movement-lead
+            className="mt-12 max-w-md text-body-l leading-loose text-ink-soft"
+          >
+            {NARRATIVE.finale.closing}
+          </p>
+        </div>
       </div>
     </section>
   );

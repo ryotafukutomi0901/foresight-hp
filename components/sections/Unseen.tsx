@@ -103,7 +103,7 @@ export default function Unseen() {
     <section
       ref={scope}
       aria-labelledby="unseen-heading"
-      className="relative flex h-[100svh] w-full items-center overflow-hidden bg-void"
+      className="relative flex h-[100svh] w-full items-center overflow-hidden"
     >
       <h2 id="unseen-heading" className="sr-only">
         {UNSEEN.a11yHeading}
@@ -116,7 +116,7 @@ export default function Unseen() {
             <p
               key={w}
               data-unseen-word
-              className="absolute inset-x-0 top-0 text-display-l font-light leading-[1.2] text-ink-soft"
+              className="absolute inset-x-0 top-0 text-display-l font-normal leading-[1.2] text-ink-soft"
             >
               {w}
             </p>

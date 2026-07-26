@@ -111,7 +111,7 @@ export default function Contact() {
       ref={scope}
       id="contact"
       aria-labelledby="contact-heading"
-      className="section-y relative bg-base"
+      className="section-y relative"
     >
       <div className="container-x">
         <div className="flex items-center gap-5">
@@ -143,7 +143,7 @@ export default function Contact() {
                 <li
                   key={f}
                   data-contact-fragment
-                  className="text-display-s font-light text-ink-soft"
+                  className="text-display-s font-normal text-ink-soft"
                 >
                   {f}
                 </li>

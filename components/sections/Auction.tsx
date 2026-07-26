@@ -94,7 +94,7 @@ export default function Auction() {
       ref={scope}
       id="auction"
       aria-labelledby="auction-heading"
-      className="section-y relative overflow-hidden bg-void"
+      className="section-y relative overflow-hidden"
     >
       <div className="container-x">
         <SectionHead
@@ -124,7 +124,7 @@ export default function Auction() {
           <div className="flex flex-col justify-end">
             <p
               data-auction-body
-              className="text-display-s font-light leading-relaxed text-ink"
+              className="text-display-s font-normal leading-relaxed text-ink"
             >
               {AUCTION.lead[0]}
               <br />

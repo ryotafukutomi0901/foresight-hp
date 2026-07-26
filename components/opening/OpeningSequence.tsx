@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import EagleFigure from "./EagleFigure";
 import CloudLayers from "./CloudLayers";
 import { gsap, useGSAP } from "@/hooks/useGsap";
 import { registerBrandEases } from "@/lib/motion";
@@ -13,24 +12,29 @@ import {
 } from "@/lib/sequence";
 
 /*
- * OPENING ANIMATION — 5.0秒
+ * OPENING — 約6.0秒
  *
- *  0.00–0.50  LOGO      ロゴが据わる
- *  0.50–1.20  BLINK     目が一度だけ瞬く
- *  1.20–2.30  PULLBACK  カメラが引く(頭 → 胴 → 翼 → 全身)
- *  2.30–3.00  FLAP      翼を一度だけ大きく打ち下ろす
- *  3.00–4.20  FLIGHT    上空へ飛び立つ
- *  4.20–5.00  CLOUD     雲が画面を覆い、Heroへ接続する
+ *  0.0–0.9  ロゴが霧の奥から結像する
+ *  0.9–1.5  目が一度だけ瞬く
+ *  1.5–3.6  目の中へ入っていく          ← この演出の核
+ *  3.6–4.6  瞳の闇を抜けて雲へ
+ *  4.6–6.0  雲が晴れ、Heroへ繋がる
+ *
+ * 「引いて全体を見せる」のではなく「入っていく」。
+ * Foresight=見通す、という名前に対して、視点が対象の内側へ入る動きの方が正しい。
+ * この"入る"運動はページ本体のスクロール(カメラ前進)にそのまま引き継がれる。
  *
  * 全体を1本のマスターTimelineで管理する。setTimeoutによる時間管理はしない
- * (スキップ・巻き戻し・速度変更ができなくなり、cleanupも保証できないため)。
+ * (スキップ・シーク・速度変更ができなくなり、cleanupも保証できないため)。
  */
 
-const TOTAL = 5.0;
+const TOTAL = 6.0;
+
+/* ロゴ画像内での目の位置(実測)。ここがカメラの進入点になる。 */
+const EYE = { x: 53.5, y: 47.5 };
 
 export default function OpeningSequence() {
-  // SSR時は必ず描画し、クライアントのlayout effectで即座に判定する。
-  // (useGSAPはlayout effectベースなので、描画前に消せば「一瞬見える」事故が起きない)
+  // SSR時は必ず描画し、クライアントのlayout effectで即座に判定する
   const [mounted, setMounted] = useState(true);
   const root = useRef<HTMLDivElement>(null);
 
@@ -42,8 +46,7 @@ export default function OpeningSequence() {
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      // 2回目以降の訪問、または「視差効果を減らす」設定時は演出を行わない。
-      // コンテンツへのアクセスを一切妨げない。
+      // 2回目以降の訪問、または「視差効果を減らす」設定時は演出を行わない
       if (reduced || !shouldPlayOpening()) {
         markOpeningSeen();
         markOpeningDone();
@@ -53,12 +56,8 @@ export default function OpeningSequence() {
 
       markOpeningSeen();
 
-      // 演出中は背面をスクロールさせない
       const prevOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
-
-      const vh = window.innerHeight;
-      const vw = window.innerWidth;
 
       const finish = () => {
         document.body.style.overflow = prevOverflow;
@@ -69,224 +68,165 @@ export default function OpeningSequence() {
       const tl = gsap.timeline({ onComplete: finish });
 
       /* ---- 初期状態 ---- */
-      gsap.set("[data-logo]", { autoAlpha: 0, scale: 1.02 });
+      /*
+       * 拡大の原点は「ロゴ画像の中の目」。
+       * 舞台(全画面)に対する%で指定すると、中央寄せされたロゴの目の実際の位置と
+       * ずれてしまい、目に入っていかず横へ流れる(実測で確認)。
+       * ロゴ要素自身をロゴ座標系の%で拡大すれば幾何学的に正確になる。
+       */
+      gsap.set("[data-logo]", {
+        autoAlpha: 0,
+        scale: 1.08,
+        filter: "blur(24px)",
+        transformOrigin: `${EYE.x}% ${EYE.y}%`,
+      });
+
+      // 速度線・瞳・周辺減光の中心を、画面上での目の実座標に合わせる
+      const logoEl = root.current?.querySelector<HTMLElement>("[data-logo]");
+      if (logoEl && root.current) {
+        const r = logoEl.getBoundingClientRect();
+        const cx = ((r.left + (r.width * EYE.x) / 100) / window.innerWidth) * 100;
+        const cy = ((r.top + (r.height * EYE.y) / 100) / window.innerHeight) * 100;
+        root.current.style.setProperty("--eye-x", `${cx}%`);
+        root.current.style.setProperty("--eye-y", `${cy}%`);
+      }
       gsap.set("[data-lid]", {
         scaleY: 0,
         rotation: -12,
         transformOrigin: "50% 0%",
       });
-      gsap.set("[data-eagle-camera]", {
-        autoAlpha: 0,
-        scale: 3.2,
-        transformOrigin: "50% 36%",
-        filter: "blur(4px)",
-      });
-      gsap.set("[data-wing-left]", { transformOrigin: "44% 45%" });
-      gsap.set("[data-wing-right]", { transformOrigin: "56% 45%" });
+      gsap.set("[data-streak]", { autoAlpha: 0, scale: 0.6 });
+      gsap.set("[data-pupil]", { autoAlpha: 0, scale: 0.2 });
+      gsap.set("[data-blackout]", { autoAlpha: 0 });
       gsap.set("[data-vignette]", { autoAlpha: 1 });
 
-      /* ---- 0.00–0.50 LOGO ---- */
+      /* ---- 0.0–0.9 ロゴが結像する ---- */
       tl.addLabel("logo", 0).to(
         "[data-logo]",
-        { autoAlpha: 1, scale: 1, duration: 0.5, ease: "brandOut" },
+        {
+          autoAlpha: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.9,
+          ease: "brandOut",
+        },
         "logo",
       );
 
-      /* ---- 0.50–1.20 BLINK ----
+      /* ---- 0.9–1.5 瞬き ----
          人間の瞬目は「閉じが速く、開きが遅い」。同じeaseで往復させない。 */
-      tl.addLabel("blink", 0.62)
+      tl.addLabel("blink", 0.95)
+        .to("[data-lid]", { scaleY: 1, duration: 0.09, ease: "power3.in" }, "blink")
         .to(
           "[data-lid]",
-          { scaleY: 1, duration: 0.09, ease: "power3.in" },
-          "blink",
-        )
-        .to(
-          "[data-lid]",
-          { scaleY: 0, duration: 0.14, ease: "power2.out" },
-          "blink+=0.13",
+          { scaleY: 0, duration: 0.16, ease: "power2.out" },
+          "blink+=0.14",
         );
 
-      /* ---- 1.20–2.30 PULLBACK ----
-         カメラが空間を後退する。ロゴと鷹を同じ ease(brandDolly) で同時に
-         退がらせながら、中盤でマッチディゾルブする(目を一致点にする)。
-         引きの過程で 頭 → 胴体 → 翼 の順に視界へ入るよう、
-         序盤に溜めのあるカーブを使う。 */
-      tl.addLabel("pullback", 1.2)
+      /* ---- 1.5–3.6 目の中へ入る ----
+         ロゴ内の目を原点に据えて指数的に拡大する。
+         easeは brandDive(最後まで加速し続ける)。減速させると"止まって見え"、
+         入っていく感覚が消えるため、ここだけは他と違うカーブを使う。 */
+      tl.addLabel("dive", 1.5)
         .to(
           "[data-logo]",
-          { scale: 0.42, duration: 1.1, ease: "brandDolly" },
-          "pullback",
+          { scale: 42, duration: 2.1, ease: "brandDive" },
+          "dive",
         )
+        // 速度線。中心から放射状に流れて速さを可視化する
+        .to(
+          "[data-streak]",
+          { autoAlpha: 0.55, scale: 3.4, duration: 1.5, ease: "power2.in" },
+          "dive+=0.25",
+        )
+        // 拡大でロゴの粗が出る前に、瞳の闇へ意識を移す
         .to(
           "[data-logo]",
-          { autoAlpha: 0, duration: 0.36, ease: "power2.inOut" },
-          "pullback+=0.42",
+          { filter: "blur(14px)", duration: 1.2, ease: "power2.in" },
+          "dive+=0.7",
         )
+        // 瞳(暗部)が画面を飲み込む
         .to(
-          "[data-eagle-camera]",
-          {
-            scale: 1,
-            filter: "blur(0px)",
-            duration: 1.1,
-            ease: "brandDolly",
-          },
-          "pullback",
+          "[data-pupil]",
+          { autoAlpha: 1, scale: 9, duration: 1.4, ease: "power2.in" },
+          "dive+=0.6",
         )
-        .to(
-          "[data-eagle-camera]",
-          { autoAlpha: 1, duration: 0.4, ease: "power2.inOut" },
-          "pullback+=0.44",
-        )
-        // 周辺の暗がりが縮んで視界が広がる
         .to(
           "[data-vignette]",
-          { autoAlpha: 0, duration: 1.0, ease: "power2.out" },
-          "pullback+=0.2",
+          { autoAlpha: 0, duration: 0.8, ease: "power1.out" },
+          "dive+=0.2",
         );
 
-      /* ---- 2.30–3.00 FLAP ----
-         anticipation(構え) → acceleration(打ち下ろし) → follow-through(戻り)。
-         3キーで重さと余韻を作る。左右で回転方向が逆になる。 */
-      tl.addLabel("flap", 2.3)
+      /* ---- 3.6–4.6 瞳の闇を抜けて雲へ ---- */
+      tl.addLabel("through", 3.55)
         .to(
-          "[data-wing-left]",
-          { rotation: -5, duration: 0.16, ease: "power2.out" },
-          "flap",
+          "[data-blackout]",
+          { autoAlpha: 1, duration: 0.35, ease: "power2.in" },
+          "through",
         )
-        .to(
-          "[data-wing-right]",
-          { rotation: 5, duration: 0.16, ease: "power2.out" },
-          "flap",
-        )
-        .to(
-          "[data-wing-left]",
-          { rotation: 11, duration: 0.2, ease: "power3.in" },
-          "flap+=0.18",
-        )
-        .to(
-          "[data-wing-right]",
-          { rotation: -11, duration: 0.2, ease: "power3.in" },
-          "flap+=0.18",
-        )
-        .to(
-          "[data-wing-left]",
-          { rotation: 0, duration: 0.34, ease: "brandOut" },
-          "flap+=0.4",
-        )
-        .to(
-          "[data-wing-right]",
-          { rotation: 0, duration: 0.34, ease: "brandOut" },
-          "flap+=0.4",
-        )
-        // 打ち下ろしの反動で機体がわずかに沈んで戻る(weight)
-        .to(
-          "[data-eagle-camera]",
-          { y: 14, duration: 0.2, ease: "power3.in" },
-          "flap+=0.18",
-        )
-        .to(
-          "[data-eagle-camera]",
-          { y: 0, duration: 0.4, ease: "brandOut" },
-          "flap+=0.4",
-        );
-
-      /* ---- 3.00–4.20 FLIGHT ----
-         直線的に上へ動かすと「移動」にしか見えない。緩いS字の軌道と、
-         一度手前に迫ってから奥へ抜けるスケール変化で上昇感と奥行きを作る。 */
-      tl.addLabel("flight", 3.0)
-        .to(
-          "[data-eagle-camera]",
-          {
-            motionPath: {
-              path: [
-                { x: 0, y: 0 },
-                { x: vw * 0.05, y: -vh * 0.28 },
-                { x: -vw * 0.04, y: -vh * 0.75 },
-                { x: vw * 0.02, y: -vh * 1.45 },
-              ],
-              curviness: 1.4,
-            },
-            duration: 1.2,
-            ease: "power2.in",
-          },
-          "flight",
-        )
-        .to(
-          "[data-eagle-camera]",
-          {
-            keyframes: [
-              { scale: 1.16, duration: 0.34, ease: "power1.out" },
-              { scale: 0.24, duration: 0.86, ease: "power2.in" },
-            ],
-          },
-          "flight",
-        )
-        .to(
-          "[data-eagle-camera]",
-          { rotation: -7, duration: 1.2, ease: "power1.inOut" },
-          "flight",
-        )
-        // 雲の谷が下へ流れ、鷹が昇っていく視差になる
+        .set(["[data-logo]", "[data-streak]", "[data-pupil]"], { autoAlpha: 0 })
+        .set("[data-logo]", { scale: 1 })
+        // 雲の谷を手前へ通過する
         .fromTo(
           "[data-cloud-corridor]",
-          { autoAlpha: 0, yPercent: -18, scale: 1.25 },
+          { autoAlpha: 0, scale: 2.4, yPercent: -14 },
           {
-            autoAlpha: 0.9,
-            yPercent: 16,
+            autoAlpha: 0.95,
             scale: 1,
+            yPercent: 10,
             duration: 1.5,
-            ease: "power1.inOut",
+            ease: "power1.out",
           },
-          "flight",
+          "through+=0.3",
+        )
+        .to(
+          "[data-blackout]",
+          { autoAlpha: 0, duration: 0.7, ease: "power1.out" },
+          "through+=0.35",
         );
 
-      /* ---- 4.20–5.00 CLOUD → HERO ----
-         対角から雲が差し込んで画面を挟み込み、ホワイトアウトでピークを作り、
-         そこから沈めてHeroの黒へ接続する。 */
-      tl.addLabel("cloud", 4.2)
+      /* ---- 4.6–6.0 雲が晴れHeroへ ---- */
+      tl.addLabel("clear", 4.6)
         .fromTo(
           "[data-cloud-in='left']",
-          { autoAlpha: 0, xPercent: -14, yPercent: -8, scale: 1.15 },
+          { autoAlpha: 0, xPercent: -12, scale: 1.2 },
           {
             autoAlpha: 1,
             xPercent: 0,
-            yPercent: 0,
             scale: 1,
-            duration: 0.62,
+            duration: 0.7,
             ease: "brandInOut",
           },
-          "cloud",
+          "clear",
         )
         .fromTo(
           "[data-cloud-in='right']",
-          { autoAlpha: 0, xPercent: 14, yPercent: 8, scale: 1.15 },
+          { autoAlpha: 0, xPercent: 12, scale: 1.2 },
           {
             autoAlpha: 1,
             xPercent: 0,
-            yPercent: 0,
             scale: 1,
-            duration: 0.62,
+            duration: 0.7,
             ease: "brandInOut",
           },
-          "cloud",
+          "clear",
         )
         .to(
           "[data-cloud-whiteout]",
-          { autoAlpha: 1, duration: 0.42, ease: "power2.in" },
-          "cloud+=0.18",
+          { autoAlpha: 0.9, duration: 0.5, ease: "power2.in" },
+          "clear+=0.2",
         )
         // 雲が晴れる合図。Heroの入場はここから始まる(幕の下で終わらせない)
-        .add(() => markOpeningDone(), "cloud+=0.42")
+        .add(() => markOpeningDone(), "clear+=0.5")
         .to(
           root.current,
-          { autoAlpha: 0, duration: 0.38, ease: "power2.inOut" },
-          "cloud+=0.44",
+          { autoAlpha: 0, duration: 0.75, ease: "power2.inOut" },
+          "clear+=0.55",
         );
 
       tl.totalDuration(TOTAL);
 
-      // 開発時のみ、各ビートを任意の時刻へシークして確認できるようにする。
-      // (本番ビルドでは条件ごと除去される)
+      // 開発時のみ、各ビートを任意の時刻へシークして確認できるようにする
       if (process.env.NODE_ENV !== "production") {
         (window as unknown as { __openingTl?: gsap.core.Timeline }).__openingTl =
           tl;
@@ -310,7 +250,6 @@ export default function OpeningSequence() {
         if (e.key === "Escape") skip();
       };
       document.addEventListener("keydown", onKey);
-
       const btn = root.current?.querySelector("[data-skip]");
       btn?.addEventListener("click", skip);
 
@@ -323,7 +262,7 @@ export default function OpeningSequence() {
     { scope: root },
   );
 
-  // 完了後はDOMから外す。合成レイヤーを残さないため display:none にはしない。
+  // 完了後はDOMから外す。合成レイヤーを残さない。
   if (!mounted) return null;
 
   return (
@@ -332,65 +271,77 @@ export default function OpeningSequence() {
       data-opening
       className="fixed inset-0 z-[100] overflow-hidden bg-void"
     >
-      {/* 演出そのものは装飾。読み上げ対象にしない */}
       <div aria-hidden className="absolute inset-0">
-        {/* 鷹 */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            data-eagle-camera
-            className="w-[min(96vw,1100px)]"
-            style={{ willChange: "transform, filter" }}
-          >
-            <EagleFigure />
+        {/* 舞台。目を原点に、ここごと拡大して「中へ入る」 */}
+        <div data-stage className="absolute inset-0">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div
+              data-logo
+              className="relative w-[min(74vw,600px)]"
+              style={{ aspectRatio: "1536 / 1085", willChange: "transform, filter" }}
+            >
+              <Image
+                src="/logo2.PNG"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 74vw, 600px"
+                priority
+                className="art-blend object-contain"
+              />
+              {/*
+                瞼。ロゴの目は「白い眼球＋黒い虹彩」が白い顔面に埋まった構造のため、
+                瞼は顔と同じ白で虹彩を覆うと閉じて見える(黒を被せると顔に穴が空く)。
+              */}
+              <span
+                data-lid
+                className="absolute rounded-full bg-ink"
+                style={{ left: "46%", width: "15%", top: "41%", height: "13%" }}
+              />
+            </div>
           </div>
+
+          {/* 瞳の闇。進入先。目の位置に置く */}
+          <div
+            data-pupil
+            className="absolute h-[14vmin] w-[14vmin] rounded-full"
+            style={{
+              left: "var(--eye-x, 50%)",
+              top: "var(--eye-y, 50%)",
+              transform: "translate(-50%, -50%)",
+              background:
+                "radial-gradient(circle, #000 38%, rgba(0,0,0,0.85) 62%, transparent 100%)",
+            }}
+          />
         </div>
 
-        {/* ロゴ(最初のビート)。鷹とマッチディゾルブする */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            data-logo
-            className="relative w-[min(76vw,620px)]"
-            style={{ aspectRatio: "1536 / 1085", willChange: "transform" }}
-          >
-            <Image
-              src="/logo2.PNG"
-              alt=""
-              fill
-              sizes="(max-width: 768px) 76vw, 620px"
-              priority
-              className="art-blend object-contain"
-            />
-            {/*
-              瞼。ロゴの目は「白い眼球 + 黒い虹彩のアーチ」が白い顔面に埋まった構造。
-              したがって瞼は顔と同じ白で、虹彩のアーチを覆うと目が閉じて見える
-              (黒を被せると顔に穴が空いたように見えてしまう)。
-              楕円・角度(-12°)・寸法はマークの目の実寸に合わせて調整済み。
-            */}
-            <span
-              data-lid
-              className="absolute rounded-full bg-ink"
-              style={{
-                left: "46%",
-                width: "15%",
-                top: "41%",
-                height: "13%",
-              }}
-            />
-          </div>
-        </div>
+        {/* 速度線。目に向かって吸い込まれる流れ */}
+        <div
+          data-streak
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "repeating-conic-gradient(from 0deg at var(--eye-x,50%) var(--eye-y,50%), rgba(255,255,255,0.09) 0deg 1.1deg, transparent 1.1deg 5deg)",
+            maskImage:
+              "radial-gradient(circle at var(--eye-x,50%) var(--eye-y,50%), transparent 5%, #000 30%, transparent 78%)",
+            WebkitMaskImage:
+              "radial-gradient(circle at var(--eye-x,50%) var(--eye-y,50%), transparent 5%, #000 30%, transparent 78%)",
+          }}
+        />
 
-        {/* 雲 */}
         <CloudLayers />
 
-        {/* 視界の周辺を落として「覗いている」状態を作る。引きに合わせて消える */}
+        {/* 覗いている状態を作る周辺減光。引き込みに合わせて消える */}
         <div
           data-vignette
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 50% 40%, transparent 22%, rgba(0,0,0,0.85) 62%, #000 88%)",
+              "radial-gradient(circle at var(--eye-x,50%) var(--eye-y,50%), transparent 20%, rgba(0,0,0,0.82) 60%, #000 90%)",
           }}
         />
+
+        {/* 瞳の内側の闇 */}
+        <div data-blackout className="absolute inset-0 bg-void" />
       </div>
 
       <button

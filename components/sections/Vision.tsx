@@ -110,7 +110,7 @@ export default function Vision() {
       ref={scope}
       id="vision"
       aria-labelledby="vision-heading"
-      className="relative h-[100svh] w-full overflow-hidden bg-void"
+      className="relative h-[100svh] w-full overflow-hidden"
     >
       {/* 3D霧。装飾のため支援技術からは隠す */}
       <div aria-hidden className="absolute inset-0">

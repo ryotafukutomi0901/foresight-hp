@@ -140,6 +140,42 @@ export const NARRATIVE = {
   },
 } as const;
 
+export type NarrativeShot = {
+  src: string;
+  alt: string;
+  kicker: string;
+  caption: readonly [string, string];
+};
+
+/*
+ * 3D回廊が読む、10枚のフラットな並び。
+ * 順番そのものに意味がある(全体→形→顔→足回り→内部→損傷→運搬→整備→再利用→未来)ため、
+ * 定義順を入れ替えないこと。
+ *
+ * 型を明示しているのは、`as const` のままだと各要素のsrcがリテラル型に
+ * 狭まって配列全体が合成できなくなるため。
+ */
+const movementShots: NarrativeShot[] = NARRATIVE.movements.flatMap((m) =>
+  // プロパティを明示的に写す。スプレッドだと`as const`由来のリテラル型が
+  // タプルごとに食い違い、配列として合成できなくなる。
+  m.shots.map((s) => ({
+    src: s.src as string,
+    alt: s.alt as string,
+    kicker: s.kicker as string,
+    caption: s.caption as readonly [string, string],
+  })),
+);
+
+export const NARRATIVE_SHOTS: readonly NarrativeShot[] = [
+  ...movementShots,
+  {
+    src: NARRATIVE.finale.src,
+    alt: NARRATIVE.finale.alt,
+    kicker: NARRATIVE.finale.kicker,
+    caption: NARRATIVE.finale.headline,
+  },
+];
+
 export const BRAND_MESSAGE = {
   label: "PHILOSOPHY",
   headline: BRAND.beyond,

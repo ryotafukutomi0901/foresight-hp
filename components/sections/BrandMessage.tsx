@@ -65,7 +65,7 @@ export default function BrandMessage() {
       ref={scope}
       id="philosophy"
       aria-labelledby="philosophy-heading"
-      className="section-y relative bg-base"
+      className="section-y relative"
     >
       <div className="container-x">
         <div className="flex items-center gap-5">

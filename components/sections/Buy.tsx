@@ -107,7 +107,7 @@ export default function Buy() {
       ref={scope}
       id="buy"
       aria-labelledby="buy-heading"
-      className="section-y relative bg-void"
+      className="section-y relative"
     >
       <div className="container-x">
         <SectionHead index={BUY.index} label={BUY.label} id="buy-heading" />
@@ -130,7 +130,7 @@ export default function Buy() {
                 <li
                   key={f}
                   data-buy-fragment
-                  className="text-body-l font-light text-ink-soft"
+                  className="text-body-l font-normal text-ink-soft"
                 >
                   {f}
                 </li>

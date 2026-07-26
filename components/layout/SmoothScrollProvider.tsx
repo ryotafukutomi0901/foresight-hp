@@ -8,6 +8,7 @@ import {
   ScrollTrigger,
 } from "@/hooks/useGsap";
 import { registerBrandEases } from "@/lib/motion";
+import { viewProgress } from "@/lib/viewProgress";
 
 /*
  * 慣性スクロール。
@@ -71,12 +72,28 @@ export default function SmoothScrollProvider({
       },
     );
 
+    /*
+     * ページ全体の進行度を3D空間へ渡す唯一の受け渡し点。
+     * ここで書き込んだ値を Atmosphere の useFrame が読み、
+     * カメラの前進と霧の流れになる。Reactのstateは経由しない。
+     */
+    const pageST = ScrollTrigger.create({
+      trigger: document.body,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: (self) => {
+        viewProgress.page = self.progress;
+        viewProgress.velocity = self.getVelocity() / 900;
+      },
+    });
+
     // 画像の読み込み完了で高さが変わるため、位置を再計算する。
     const onLoad = () => ScrollTrigger.refresh();
     window.addEventListener("load", onLoad);
 
     return () => {
       window.removeEventListener("load", onLoad);
+      pageST.kill();
       mm.revert();
     };
   }, []);

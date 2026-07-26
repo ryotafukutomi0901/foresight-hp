@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import Image from "next/image";
 import CtaButton from "@/components/ui/CtaButton";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { onOpeningDone } from "@/lib/sequence";
@@ -15,7 +14,7 @@ import { CTA, HERO } from "@/lib/content";
  * 即再生すると雲の下で演出が終わってしまい、静止した画面しか見えなくなる。
  */
 export default function Hero() {
-  const scope = useScopedGsap<HTMLElement>(({ scope }) => {
+  const scope = useScopedGsap<HTMLElement>(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
       .matches;
 
@@ -66,17 +65,6 @@ export default function Hero() {
       yoyo: true,
     });
 
-    // 背景の鷹をゆっくりパララックスさせ、Openingの残響を持たせる
-    gsap.to("[data-hero-mark]", {
-      yPercent: 12,
-      ease: "none",
-      scrollTrigger: {
-        trigger: scope.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
   }, []);
 
   useEffect(
@@ -89,28 +77,12 @@ export default function Hero() {
       ref={scope}
       id="top"
       aria-labelledby="hero-heading"
-      className="relative flex min-h-[100svh] w-full items-center overflow-hidden bg-void pb-24 pt-32"
+      className="relative flex min-h-[100svh] w-full items-center overflow-hidden pb-24 pt-32"
     >
-      {/* 鷹は常時大きく見せない。存在を感じる程度の低不透明度に留める */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 flex items-center justify-center"
-      >
-        <div
-          data-hero-mark
-          className="relative w-[min(150vw,1500px)] opacity-[0.07]"
-          style={{ aspectRatio: "1672 / 941" }}
-        >
-          <Image
-            src="/hawk-master.PNG"
-            alt=""
-            fill
-            sizes="150vw"
-            className="art-blend object-contain"
-          />
-        </div>
-      </div>
-
+      {/*
+        背景はマークを敷かず、常設の3D空間(霧・光条・塵)そのものに見せる。
+        静止した図版を置くより、空気が流れている方が没入感が高い。
+      */}
       <div className="container-x relative z-10">
         <p
           data-hero-en
