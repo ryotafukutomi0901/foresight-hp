@@ -45,27 +45,13 @@ export default function BrandMessage() {
             "-=0.6",
           );
 
-        // 断章は「読ませる」ため、他より遅く・間隔を空けて出す
-        gsap.from("[data-bm-fragment]", {
-          autoAlpha: 0,
-          y: 16,
-          duration: 0.75,
-          ease: "brandOut",
-          stagger: 0.16,
-          scrollTrigger: {
-            trigger: "[data-bm-fragments]",
-            start: "top 82%",
-            once: true,
-          },
-        });
-
-        gsap.from("[data-bm-closing]", {
+        gsap.from("[data-bm-body]", {
           autoAlpha: 0,
           y: 20,
           duration: 1.1,
           ease: "brandOut",
           scrollTrigger: {
-            trigger: "[data-bm-closing]",
+            trigger: "[data-bm-body]",
             start: "top 88%",
             once: true,
           },
@@ -113,35 +99,12 @@ export default function BrandMessage() {
           {BRAND_MESSAGE.sub[1]}
         </p>
 
-        <div className="mt-28 grid gap-16 lg:grid-cols-[1fr_1fr] lg:gap-24">
-          {/* 状態の断章 */}
-          <ul data-bm-fragments className="border-t border-rule">
-            {BRAND_MESSAGE.fragments.map((f) => (
-              <li
-                key={f}
-                data-bm-fragment
-                className="border-b border-rule py-5 text-display-s font-light text-ink-soft"
-              >
-                {f}
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex flex-col justify-end">
-            <p
-              data-bm-closing
-              className="text-display-m font-normal leading-snug text-ink"
-            >
-              <span aria-hidden className="mr-3 text-ink-faint">
-                ———
-              </span>
-              {BRAND_MESSAGE.closing}
-            </p>
-            <p className="mt-10 max-w-md text-sm leading-loose text-ink-soft">
-              {BRAND_MESSAGE.body}
-            </p>
-          </div>
-        </div>
+        <p
+          data-bm-body
+          className="mt-24 max-w-xl text-sm leading-loose text-ink-soft"
+        >
+          {BRAND_MESSAGE.body}
+        </p>
       </div>
     </section>
   );

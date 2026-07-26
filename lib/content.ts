@@ -35,22 +35,127 @@ export const HERO = {
   scrollCue: "SCROLL",
 } as const;
 
+/* SCENE 02 — 霧の中から視界が開いていく3段階 */
+export const VISION = {
+  a11yHeading: "Foresightの視点",
+  steps: ["まだ、何も見えない。", "少しずつ、見えてくる。", "そして、全体が見える。"],
+} as const;
+
+/*
+ * 10枚のビジュアルによるナラティブ。
+ * 「車の写真ギャラリー」ではなく、1台の車が視点を変えながら
+ * 次の可能性へ進んでいく一つの物語として構成する。
+ * 各キャプションは提供された元シートの文言をそのまま使っている。
+ */
+export const NARRATIVE = {
+  label: "THE NARRATIVE",
+  movements: [
+    {
+      id: "see",
+      index: "I",
+      title: "見る。",
+      lead: "まず、その車の姿を見る。",
+      shots: [
+        {
+          src: "/images/foresight/vehicle-parts/01-suv-whole.webp",
+          alt: "Foresightのロゴを掲げた探索・回収車両の全体像",
+          kicker: "THE WHOLE",
+          caption: ["どんな場所へも向かう、", "力強く無骨な探索・回収車両の全体像。"],
+        },
+        {
+          src: "/images/foresight/vehicle-parts/02-suv-side.webp",
+          alt: "車両のサイドシルエット",
+          kicker: "THE FORM",
+          caption: ["機能的で無駄のないフォルム。", "積載性と走破性を兼ね備えた設計。"],
+        },
+        {
+          src: "/images/foresight/vehicle-parts/03-front-face.webp",
+          alt: "車両のフロントフェイスとヘッドライト",
+          kicker: "THE FACE",
+          caption: ["鷹の鋭い眼差しのようなヘッドライト。", "存在感と信頼感を象徴するフロント。"],
+        },
+      ],
+    },
+    {
+      id: "beneath",
+      index: "II",
+      title: "その先を見る。",
+      lead: "見えているものが、その車のすべてではない。",
+      shots: [
+        {
+          src: "/images/foresight/vehicle-parts/04-tire-suspension.webp",
+          alt: "タイヤ・ホイールとサスペンション",
+          kicker: "THE GROUND",
+          caption: ["過酷な環境を支える足回り。", "路面を掴み、どこへでも進む。"],
+        },
+        {
+          src: "/images/foresight/vehicle-parts/05-engine.webp",
+          alt: "エンジンの機械構造",
+          kicker: "THE CORE",
+          caption: ["見えない内部こそ価値の源泉。", "精密な構造が力を生み出す。"],
+        },
+        {
+          src: "/images/foresight/vehicle-parts/06-damaged.webp",
+          alt: "事故や経年により損傷した車両",
+          kicker: "THE DAMAGE",
+          caption: ["事故や経年による損傷。", "それでも、価値はまだ残っている。"],
+        },
+      ],
+    },
+    {
+      id: "restore",
+      index: "III",
+      title: "価値を戻す。",
+      lead: "運び、整え、次へつなぐ。",
+      shots: [
+        {
+          src: "/images/foresight/vehicle-parts/07-transport.webp",
+          alt: "積載車で車両を運搬する様子",
+          kicker: "THE JOURNEY",
+          caption: ["大切に回収し、安全確実に", "次の場所へと運ぶ。"],
+        },
+        {
+          src: "/images/foresight/vehicle-parts/08-repair.webp",
+          alt: "リフトに上げた車両を整備する作業者",
+          kicker: "THE REBUILD",
+          caption: ["プロの手によって整え、", "再び走れる状態へ。"],
+        },
+        {
+          src: "/images/foresight/vehicle-parts/09-parts-reuse.webp",
+          alt: "分解・分類された再利用可能なパーツ群",
+          kicker: "THE PARTS",
+          caption: ["一つひとつのパーツに新たな可能性。", "再利用で、価値をつなぐ。"],
+        },
+      ],
+    },
+  ],
+  finale: {
+    id: "next",
+    index: "IV",
+    kicker: "THE NEXT",
+    src: "/images/foresight/vehicle-parts/10-next-journey.webp",
+    alt: "夜明けの道を次の場所へ向かう車両",
+    headline: ["新しいオーナーのもとへ。", "未来へ続く道を、共に。"],
+    closing: "それが、Foresightの見ている先。",
+  },
+} as const;
+
 export const BRAND_MESSAGE = {
   label: "PHILOSOPHY",
   headline: BRAND.beyond,
   sub: ["どんな状態の車にも、", "次の可能性がある。"],
-  /* 情報の列挙ではなく、断章として1行ずつ置く */
-  fragments: [
-    "不動車。",
-    "事故車。",
-    "故障した車。",
-    "過走行車。",
-    "車検が切れた車。",
-    "長年眠っていた車。",
-    "価値がわからない車。",
-  ],
-  closing: "それでも、次がある。",
   body: "車の現在の状態は、その車の価値ではない。私たちは状態の先にある可能性を見て、買取り、運び、整え、次の人へつなぐ。",
+} as const;
+
+/*
+ * SCENE 04 — THE UNSEEN
+ * 状態を列挙した「情報」ではなく、一語ずつ視界に結んでは消える体験にする。
+ * カード化・リスト化しない。1画面に1語だけを置き、余白に語らせる。
+ */
+export const UNSEEN = {
+  a11yHeading: "私たちが価値を見出す車の状態",
+  words: ["不動車。", "事故車。", "長年乗り続けた車。", "価値がわからない車。"],
+  closing: "それでも、次がある。",
 } as const;
 
 export const BUY = {
