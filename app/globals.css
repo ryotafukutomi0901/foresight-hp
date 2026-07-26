@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/*
+ * FORESIGHT DESIGN SYSTEM
+ * 完全モノクロ(彩度ゼロ)。色は一切使わない。
+ * 階層は「明度・余白・罫線・動き」だけで作る。
+ */
+
+@theme {
+  /* ---- Color ---- */
+  /* アセット(鷹・雲・ロゴ)は白抜き/純黒背景。.art-blend で合成するため
+     ステージ背景は純黒を基準にする。 */
+  --color-void: #000000; /* Opening / Hero */
+  --color-base: #0a0a0a; /* 標準セクション */
+  --color-raised: #121212; /* 入力欄・面 */
+  --color-ink: #ffffff; /* 主要テキスト */
+  --color-ink-soft: #9a9a9a; /* 本文補助 (#0a0a0a上で7.0:1 → AA合格) */
+  --color-ink-faint: #6e6e6e; /* ラベル・注記。本文には使わない */
+  --color-rule: #1f1f1f; /* 罫線 */
+  --color-rule-strong: #3d3d3d; /* 強調罫線 */
+
+  /* ---- Typography ---- */
+  --font-jp: var(--font-zen-kaku), system-ui, sans-serif;
+  --font-latin: var(--font-archivo), system-ui, sans-serif;
+
+  --text-display-xl: clamp(2.75rem, 8vw, 7rem);
+  --text-display-l: clamp(2.25rem, 6vw, 5rem);
+  --text-display-m: clamp(1.75rem, 4vw, 3rem);
+  --text-display-s: clamp(1.375rem, 2.6vw, 2rem);
+  --text-body-l: clamp(1rem, 1.4vw, 1.125rem);
+  --text-label: 0.6875rem;
+
+  /* ---- Motion ---- */
+  --duration-micro: 300ms;
+  --duration-ui: 600ms;
+  --duration-enter: 1000ms;
+  --duration-cine: 1600ms;
+}
+
+@layer base {
+  /* Radius: 0。角の鋭さをブランド規律とする(ロゴの鋭角と整合) */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-radius: 0;
+  }
+
+  html {
+    /* ScrollSmootherが慣性を担当するため、CSSのsmooth scrollは使わない。
+       (Next.js 16 は scroll-behavior の自動上書きを廃止済み) */
+    scroll-behavior: auto;
+    background: var(--color-void);
+  }
+
+  body {
+    background: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-jp);
+    font-weight: 300;
+    line-height: 1.9;
+    letter-spacing: 0.02em;
+    -webkit-font-smoothing: antialiased;
+    /* 大型ラテン見出しが原因で横スクロールが出ないようにする */
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    line-height: 1.3;
+    font-weight: 400;
+  }
+
+  /* 黒背景で確実に視認できるフォーカスリング */
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-void);
+  }
+}
+
+@layer components {
+  /* セクションの縦リズム */
+  .section-y {
+    padding-block: clamp(6rem, 14vh, 12rem);
+  }
+
+  /* コンテナ + ガター */
+  .container-x {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 5rem);
+  }
+
+  /* ラテンの小ラベル (BUY / SELL / AUCTION 等) */
+  .label {
+    font-family: var(--font-latin);
+    font-size: var(--text-label);
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  /*
+   * 白抜き/純黒背景のアセットを、透過処理なしで合成する。
+   * lighten: max(a,b) → 黒(0)の画素は背景をそのまま通すので、
+   * アルファチャンネルを抜く前処理が一切不要になる。
+   *
+   * screenではなくlightenを使う理由:
+   * screenは 1-(1-a)(1-b) なので、同じ中間調が重なると元より明るくなる
+   * (例: 0.5と0.5で0.75)。鷹をレイヤー分割すると重なり部分の羽根の階調が
+   * 白飛びし、縦帯状の継ぎ目として見えてしまう。
+   * lightenは最大値を取るだけなので、同じ画素が何枚重なっても値が変わらず
+   * 継ぎ目が原理的に発生しない。
+   */
+  .art-blend {
+    mix-blend-mode: lighten;
+  }
+
+  /* 行マスク(下から立ち上がる文字)の受け皿 */
+  .line-mask {
+    display: block;
+    overflow: hidden;
+  }
+}
+
+/*
+ * アニメーションを止めても内容が理解できることを保証する。
+ * GSAP側でも matchMedia("(prefers-reduced-motion: reduce)") で
+ * 最終状態を即適用しているが、CSSトランジションも合わせて無効化する。
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
