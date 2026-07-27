@@ -155,12 +155,15 @@ export default function Narrative() {
             >
               {mv.index}
             </span>
-            <h3 data-movement-title className="mt-8 text-display-l text-ink">
+            <h3
+              data-movement-title
+              className="mt-8 text-display-l font-semibold text-ink-strong [text-shadow:0_2px_24px_rgba(0,0,0,0.85)]"
+            >
               {mv.title}
             </h3>
             <p
               data-movement-lead
-              className="mt-8 max-w-md text-body-l leading-loose text-ink-soft"
+              className="mt-8 max-w-md text-body-l leading-loose text-ink-soft [text-shadow:0_2px_16px_rgba(0,0,0,0.8)]"
             >
               {mv.lead}
             </p>
@@ -180,22 +183,28 @@ export default function Narrative() {
                   i % 2 === 1 ? "justify-end text-right" : "justify-start"
                 }`}
               >
-                <div className="max-w-[22rem] [word-break:keep-all] [overflow-wrap:anywhere]">
+                <div
+                  className="max-w-[min(24rem,88vw)] rounded-none px-6 py-5 backdrop-blur-[2px]"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(5,5,6,0.55), rgba(5,5,6,0.7))",
+                  }}
+                >
                   <span
                     data-caption-kicker
-                    className="label block text-ink-faint"
+                    className="label block text-ink-strong"
                   >
                     {shot.kicker}
                   </span>
                   <p
                     data-caption-line
-                    className="mt-6 text-display-s leading-relaxed text-ink"
+                    className="mt-6 text-display-m font-semibold leading-relaxed text-ink-strong [text-shadow:0_2px_20px_rgba(0,0,0,0.9)]"
                   >
                     {shot.caption[0]}
                   </p>
                   <p
                     data-caption-line
-                    className="text-display-s leading-relaxed text-ink"
+                    className="text-display-m font-semibold leading-relaxed text-ink-strong [text-shadow:0_2px_20px_rgba(0,0,0,0.9)]"
                   >
                     {shot.caption[1]}
                   </p>

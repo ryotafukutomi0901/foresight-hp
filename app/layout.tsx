@@ -70,7 +70,16 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+/*
+ * `viewport`をカスタム定義すると、Next.jsは width/initialScale を
+ * 自動追加しない。省略すると `<meta name="viewport">` に
+ * width=device-width が入らず、モバイルブラウザが既定の広い仮想ビューポート
+ * (端末幅と無関係な値)で描画してしまい、fixed要素の実寸がずれて
+ * 横スクロールが発生する(実測で確認)。既存V1から潜在していた不具合。
+ */
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
   themeColor: "#000000",
   colorScheme: "dark",
 };

@@ -27,10 +27,25 @@ import { NARRATIVE_SHOTS } from "@/lib/content";
  *   視覚的非表示で必ず残している。
  */
 
-/** 回廊の全長(Z方向)。この距離をスクロール進行度0→1で通過する。 */
-const CORRIDOR_DEPTH = 150;
-/** カメラ手前の余裕。0だと最初の1枚が既に背後にある状態で始まってしまう。 */
-const LEAD_IN = 12;
+/*
+ * 配置と可視域の設計。
+ *
+ * NEAR_OUT より手前には絶対に来させない。
+ * 素材の実寸は267×296pxしかなく、寄りすぎると線が潰れて画質が破綻するため、
+ * 「画面の約半分に収まる距離」で頭打ちにして、そこから先はフェードで消す。
+ *
+ * LEAD_IN は、進行度0(=Hero〜第2セクション)の時点で1枚目が
+ * FAR_OUT よりさらに奥に居るように取る。これで序盤は車が一切現れず、
+ * 空気だけの画面になる。
+ */
+const GAP = 16; // 1枚あたりの奥行き間隔
+const LEAD_IN = 128; // 進行度0での1枚目の距離。FAR_OUTより奥に置き、Hero/Visionでは何も見えないようにする
+const NEAR_OUT = -48; // これより手前には来させない(素材267pxの画質が保てる最短距離)
+const NEAR_IN = -30; // 完全に消えきる位置(NEAR_OUTより少し奥。ここでフェードし切る)
+const FAR_IN = -95; // ここまで来たら完全に見える
+const FAR_OUT = -125; // これより奥は見えない
+/** 最後の1枚が可視域の中央あたりまで来るのに必要な移動量。 */
+const TRAVEL = 210;
 
 type Slot = {
   src: string;
@@ -58,7 +73,7 @@ function Shot({
     const t = state.clock.elapsedTime;
 
     // カメラは0にいて、回廊側が手前へ流れてくる
-    const travelled = viewProgress.corridor * CORRIDOR_DEPTH;
+    const travelled = viewProgress.corridor * TRAVEL;
     const z = slot.z + travelled;
     m.position.z = z;
 
@@ -71,22 +86,19 @@ function Shot({
 
     /*
      * 手前を通り過ぎたら消し、遠すぎても消す。
-     * 素材の実寸が267pxしかないため、カメラに近づけすぎると粗が出る。
-     * 一番寄る位置で画面の約半分に収まる距離までしか近づけない。
+     * 素材の実寸が267pxしかないため、NEAR_OUTより近づけると線が潰れて
+     * 画質が破綻する。そこに達する前にフェードし切らせ、寄りすぎさせない。
+     *
+     * smoothstep(x, min, max) は x<=min で0、x>=max で1 を返す。
+     *   nearVis … 手前(NEAR_OUT)から近づきすぎ(NEAR_IN)にかけて 1→0
+     *   farVis  … 奥(FAR_OUT)から見え始め(FAR_IN)にかけて 0→1
      */
     if (mat.current) {
-      /*
-       * smoothstep(x, min, max) は x<=min で0、x>=max で1 を返す。
-       * 「手前で消す」「奥で消す」をそれぞれ次の向きで組む:
-       *   nearVis … カメラを通り過ぎた(z が正に振れた)ら 1→0
-       *   farVis  … 奥へ行き過ぎたら 1→0
-       * ここを逆向きに書くと通常の距離帯で0になり、1枚も出なくなる。
-       */
-      const nearVis = 1 - THREE.MathUtils.smoothstep(z, -2, 6);
-      const farVis = THREE.MathUtils.smoothstep(z, -115, -75);
+      const nearVis = 1 - THREE.MathUtils.smoothstep(z, NEAR_OUT, NEAR_IN);
+      const farVis = THREE.MathUtils.smoothstep(z, FAR_OUT, FAR_IN);
       mat.current.opacity = nearVis * farVis;
     }
-    m.visible = z < 8 && z > -125;
+    m.visible = z < NEAR_IN + 2 && z > FAR_OUT - 5;
   });
 
   return (
@@ -118,14 +130,12 @@ export default function NarrativeCorridor() {
       const v = Math.sin(n * 78.233) * 43758.5453;
       return v - Math.floor(v);
     };
-    const gap = CORRIDOR_DEPTH / sources.length;
-
     return sources.map((src, i) => {
       // 左右交互に振り、まっすぐ並べない。通過するたびに視線が振られる。
       const side = i % 2 === 0 ? -1 : 1;
       return {
         src,
-        z: -LEAD_IN - i * gap,
+        z: -(LEAD_IN + i * GAP),
         x: side * (3.6 + rnd(i) * 1.6),
         y: (rnd(i + 50) - 0.5) * 3.6,
         scale: 9.5 + rnd(i + 90) * 1.8,
