@@ -24,11 +24,11 @@ LoadingからCTAまでが一続きのブランド体験となり、「車の未�
 ```
 Phase 1  Design System      ✅ 完了
 Phase 2  Storyboard         ✅ 完了・CEO承認済（2026-07-28）
-Phase 3  Shot List          ← 現在地
-         ★ Baseline Capture（Phase 4 開始前に必ず実施）
-Phase 4  Motion Prototype
-Phase 5  Asset Production Guide  ★ CEOが画像生成
-Phase 6  Implementation
+Phase 3  Shot List          ✅ 完了
+         ★ Baseline Capture ✅ 完了（docs/baseline/ に15枚）
+Phase 4  Motion Prototype   ✅ 完了
+Phase 5  Asset Production Guide ✅ 完了 → ★CEOが画像生成
+Phase 6  Implementation     ← 次
 Phase 7  Optimization
 Phase 8  Final QA
 ```
@@ -193,7 +193,7 @@ H-03 を変更 →  H-02 / H-03 / H-04 を通し確認
 | [performance-budget.md](./performance-budget.md) | 性能予算 |
 | [decision-log.md](./decision-log.md) | 採用・却下の記録 |
 | [shot-list.md](./shot-list.md) | Shot単位の撮影台本 |
-| `asset-production-guide.md` | Phase 5 で作成 |
+| [asset-production-guide.md](./asset-production-guide.md) | 制作指示書 + 生成プロンプト |
 | `baseline/` | Vision の変更禁止を保証する基準画像（Phase 4 前に取得） |
 
 ## 素材の前提（CEO指示・2026-07-28）
