@@ -92,15 +92,15 @@ export default function Auction() {
   return (
     <section
       ref={scope}
-      id="auction"
-      aria-labelledby="auction-heading"
+      id="find"
+      aria-labelledby="find-heading"
       className="section-y relative overflow-hidden"
     >
       <div className="container-x">
         <SectionHead
           index={AUCTION.index}
           label={AUCTION.label}
-          id="auction-heading"
+          id="find-heading"
         />
 
         {/* 走査線 */}

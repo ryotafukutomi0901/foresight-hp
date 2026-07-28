@@ -21,7 +21,7 @@
 
 | 指標 | 予算 | 備考 |
 |---|---|---|
-| **WebGLコンテキスト数** | **1** | 現状2つ走っている(`VisionScene` + `Atmosphere`)。**Phase 6で統合する** |
+| **WebGLコンテキスト数** | **1** | ⚠️ **現状2つ。予算違反中。** 統合すると Vision の見た目が変わり決定事項4に抵触するため保留（[decision-log D-011](./decision-log.md) / 要CEO判断） |
 | **Draw Calls** | ≤ 80 | 霧26 + 塵1 + 光条3 + 回廊10 + ポストプロセス |
 | **GPU Memory** | ≤ 180MB | |
 | **Texture合計** | ≤ 24MB | VRAM上 |

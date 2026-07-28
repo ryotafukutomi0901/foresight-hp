@@ -43,3 +43,7 @@ next-env.d.ts
 # Baseline の比較実行時に生成される作業ファイル（基準画像本体は追跡する）
 docs/baseline/_current/
 docs/baseline/_diff/
+
+# 10分割のリファレンスシート。scripts/slice-siteparts.mjs の入力にのみ使い、
+# 配信はしないためデプロイ対象から外す（1.9MB）
+public/siteparts.png

@@ -3,7 +3,7 @@
  * 文言修正がコンポーネント横断にならないようにするため、
  * 各セクションはここからのみ文言を読む。
  *
- * 方針: BUY / SELL / AUCTION は「何をやれるか」をメッセージとして伝える。
+ * 方針: BUY / SELL / FIND は「何をやれるか」をメッセージとして伝える。
  * 対象車種や条件を仕様の箇条書きとして並べない。
  */
 
@@ -18,8 +18,8 @@ export const BRAND = {
 
 export const NAV = [
   { label: "BUY", href: "#buy", ja: "車を売る" },
-  { label: "SELL", href: "#sell", ja: "車を探す" },
-  { label: "AUCTION", href: "#auction", ja: "オークション代行" },
+  { label: "SELL", href: "#sell", ja: "車を買う" },
+  { label: "FIND", href: "#find", ja: "車を探す" },
   { label: "CONTACT", href: "#contact", ja: "お問い合わせ" },
 ] as const;
 
@@ -230,7 +230,8 @@ export const SELL = {
 } as const;
 
 export const AUCTION = {
-  label: "AUCTION",
+  /* セクション名はFIND。「探す」が事業実態で、AUCTIONは手段名にすぎない */
+  label: "FIND",
   index: "03",
   headline: ["見つける。", "選ぶ。", "つなぐ。"],
   lead: ["欲しい車が、目の前にあるとは限らない。", "だから、探しに行く。"],
