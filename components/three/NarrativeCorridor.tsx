@@ -153,6 +153,16 @@ function Shot({
 
 export default function NarrativeCorridor() {
   const { size } = useThree();
+  const group = useRef<THREE.Group>(null);
+
+  /*
+   * ハードゲート。What We Can Do に入るまで回廊を一切描画しない。
+   * 距離設計だけでは板のサイズ変更で破れるため、独立したゲートで守る。
+   */
+  useFrame(() => {
+    const g = group.current;
+    if (g) g.visible = viewProgress.corridor >= C.gateProgress;
+  });
   const sources = useMemo<string[]>(
     () => NARRATIVE_SHOTS.map((shot) => shot.src),
     [],
@@ -172,7 +182,7 @@ export default function NarrativeCorridor() {
         z: -(LEAD_IN + i * GAP),
         x: side * (3.6 + rnd(i) * 1.6),
         y: (rnd(i + 50) - 0.5) * 3.6,
-        scale: 9.5 + rnd(i + 90) * 1.8,
+        scale: C.planeScaleBase + rnd(i + 90) * C.planeScaleVariance,
         tilt: (rnd(i + 130) - 0.5) * 0.1,
         spin: rnd(i + 170) * 6.28,
       };
@@ -185,7 +195,7 @@ export default function NarrativeCorridor() {
   const spread = 0.45 + fit * 0.55;
 
   return (
-    <group>
+    <group ref={group} visible={false}>
       {slots.map((slot, i) => (
         <Shot
           key={slot.src}

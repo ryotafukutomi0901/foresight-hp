@@ -47,6 +47,7 @@ uniform float uMatrixSize;
 uniform float uDarkCutoff;
 uniform float uLightCutoff;
 uniform float uStrength;
+uniform float uEdgeFeather;
 
 varying vec2 vUv;
 
@@ -113,7 +114,16 @@ void main() {
    * 5. 加算合成のため、黒はそのまま黒（=透過）にする。
    *    alpha ではなく色の明度で透過を作るのが加算合成の流儀。
    */
-  vec3 color = vec3(v) * uOpacity;
+  /*
+   * 6. 板の端を放射状にフェードさせる。
+   *    暗部カットオフだけでは圧縮ノイズが残り、矩形が薄い箱として見える。
+   *    境界そのものを消してしまえば、ノイズが残っても箱にはならない。
+   */
+  vec2 fromCenter = vUv - 0.5;
+  float edgeDist = max(abs(fromCenter.x), abs(fromCenter.y));
+  float edge = 1.0 - smoothstep(uEdgeFeather, 0.5, edgeDist);
+
+  vec3 color = vec3(v) * uOpacity * edge;
   gl_FragColor = vec4(color, 1.0);
 }
 `;
@@ -127,6 +137,7 @@ export type DitherUniforms = {
   uDarkCutoff: { value: number };
   uLightCutoff: { value: number };
   uStrength: { value: number };
+  uEdgeFeather: { value: number };
 };
 
 /**
@@ -143,6 +154,7 @@ export function createDitherMaterial(texture: THREE.Texture) {
     uDarkCutoff: { value: dither.darkCutoff },
     uLightCutoff: { value: dither.lightCutoff },
     uStrength: { value: dither.strength },
+    uEdgeFeather: { value: dither.edgeFeather },
   };
 
   const material = new THREE.ShaderMaterial({
