@@ -99,6 +99,34 @@ Motion / Camera / Typography / Spacing / Rhythm / Lighting が映画として自
 
 担保: Storyboard・Shot List に「前からの受け」「次への渡し」を必須項目として持たせる / 実装検証は前後2セクションを含めた通しで行う。
 
+### Motion Regression Rule（Phase 4 以降）
+
+**1つのShotを修正したら、その前後1Shotも必ず通しで確認する。**
+
+```
+H-03 を変更 →  H-02 / H-03 / H-04 を通し確認
+```
+
+**Shot単位ではなく「前後を含めた3Shot」を確認の最小単位とする。**
+
+**なぜ必要か**: ScrollTrigger と GSAP Timeline は **1か所触るだけで前後が崩れる**構造を持つ。
+
+| 崩れ方 | 原因 |
+|---|---|
+| 後続Shotが早く/遅く始まる | Timeline の position parameter は**相対指定**(`-=0.7` 等)。前のShotのdurationを変えると後続が連鎖してズレる |
+| pin区間の後ろが飛ぶ | `pin` は `pinSpacing` でページ高を変える。pin距離を変えると**後続の全ScrollTriggerの絶対位置がズレる** |
+| 要素が出ないまま終わる | `once: true` の start 位置が、前のShotのレイアウト変更で画面外に移動する |
+| scrub が効かなくなる | 前のShotで `ease` を入れると、scrub区間との境界で速度が不連続になる |
+
+いずれも**変更したShot自体は正常に見える**のが厄介な点。単体確認では検出できない。
+
+**確認方法**
+- Playwright のスクロール検証を **3Shot分の区間**で行う(単一Shotで切らない)
+- Loading は `window.__openingTl` を**前Shotの開始時刻から**シークして通す
+- 4つの継ぎ目([shot-list.md](./shot-list.md#shot間の依存関係consistency-rule))を跨ぐ変更は、**跨いだ両側のセクションを丸ごと**確認する
+
+> Consistency Rule が「設計は前後を見て作る」なのに対し、これは**「実装は前後を見て検証する」**。設計と検証の両輪。
+
 ### Internal Design Review Rule
 
 各フェーズ内の区切りで**自身を第三者レビューアとして監査する。**

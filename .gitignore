@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Baseline の比較実行時に生成される作業ファイル（基準画像本体は追跡する）
+docs/baseline/_current/
+docs/baseline/_diff/
