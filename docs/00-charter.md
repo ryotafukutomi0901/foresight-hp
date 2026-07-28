@@ -22,9 +22,10 @@ LoadingからCTAまでが一続きのブランド体験となり、「車の未�
 ## フェーズ
 
 ```
-Phase 1  Design System
-Phase 2  Storyboard        ★ CEOレビュー（必ず停止）
-Phase 3  Shot List
+Phase 1  Design System      ✅ 完了
+Phase 2  Storyboard         ✅ 完了・CEO承認済（2026-07-28）
+Phase 3  Shot List          ← 現在地
+         ★ Baseline Capture（Phase 4 開始前に必ず実施）
 Phase 4  Motion Prototype
 Phase 5  Asset Production Guide  ★ CEOが画像生成
 Phase 6  Implementation
@@ -33,6 +34,31 @@ Phase 8  Final QA
 ```
 
 各フェーズ終了時に**自己レビュー**(改善点 / 懸念点 / 次フェーズへの影響)を提出する。
+
+## Design Freeze（2026-07-28）
+
+**Charter v2.0 をここで凍結する。今後、原則として新しいルールを追加しない。**
+
+改善案は Creative Proposal Rule / Creative Override Rule に従って提案する。
+**ルールを増やすのではなく、Storyboard・Shot List・Bible・Asset Guide の品質向上へ注力する。**
+
+## Baseline Capture（Phase 4 開始前に実施）
+
+**目的**: 「Visionを変更しない」を**定量的に保証する**。人の目で「たぶん同じ」と判断しない。
+
+| | |
+|---|---|
+| 実施時期 | **Phase 4 開始前**(コードに一切手を付ける前) |
+| 保存先 | `docs/baseline/` |
+| 取得対象 | PNG Screenshot / Playwright Screenshot / 必要に応じて MP4 |
+| 取得条件 | `deviceScaleFactor: 2` / desktop 1440×900・tablet 834×1112・mobile 390×844 |
+| 取得範囲 | Vision セクションのスクロール進行度 0 / 0.25 / 0.5 / 0.75 / 1.0 の5点 |
+
+**以後、Visionに影響し得る変更(共通トークン・Atmosphere統合など)を行った際は、必ずBaselineとの差分比較を行う。**
+差分が出た場合は「意図した変更か」を判断し、意図しない差分なら**その変更を破棄する**。
+
+> Vision は共通の3D空間・共通トークンを使うため、**他セクションの改修で意図せず変わるリスクが構造的にある**。
+> Baseline はそのための保険であり、Phase 6 の Atmosphere 統合時に最も効く。
 
 ---
 
@@ -123,7 +149,15 @@ Motion / Camera / Typography / Spacing / Rhythm / Lighting が映画として自
 | [experience-kpi.md](./experience-kpi.md) | 体験ベースの成功基準 |
 | [performance-budget.md](./performance-budget.md) | 性能予算 |
 | [decision-log.md](./decision-log.md) | 採用・却下の記録 |
-| `shot-list.md` | Phase 3 で作成 |
+| [shot-list.md](./shot-list.md) | Shot単位の撮影台本 |
 | `asset-production-guide.md` | Phase 5 で作成 |
+| `baseline/` | Vision の変更禁止を保証する基準画像（Phase 4 前に取得） |
+
+## 素材の前提（CEO指示・2026-07-28）
+
+| 項目 | 決定 |
+|---|---|
+| **車両素材の解像度** | **4096px級を推奨・最低要件とする。** 現行267pxでは What We Can Do の受け入れ条件「寄っても破綻しない」を満たせない。**Asset Guide のOpenAIプロンプトも4096px前提で作成する** |
+| **logo.svg** | Loading / Hero の基盤素材。**未提供のためPlaceholder構成で進める。** 差し替えポイントを実装側で明確にし、SVGが届いた時点で**1ファイル差し替えるだけで反映される**構造にする |
 
 **数値はBibleにのみ存在する。** 他のドキュメントは参照するだけで再掲しない(二重管理は必ずズレるため)。
