@@ -28,9 +28,12 @@ Phase 3  Shot List          ✅ 完了
          ★ Baseline Capture ✅ 完了（docs/baseline/ に15枚）
 Phase 4  Motion Prototype   ✅ 完了
 Phase 5  Asset Production Guide ✅ 完了 → ★CEOが画像生成
-Phase 6  Implementation     ← 次
-Phase 7  Optimization
-Phase 8  Final QA
+Phase 6  Implementation   ✅ 一部完了（Find改名 / 不要アセット除外 / D-011保留）
+Phase 7  Optimization     ✅ 完了（desktop 16→54fps）
+Phase 8  Final QA         ✅ 完了
+
+★ CEO判断待ち: D-011（Canvas 2重起動）/ D-012（Baseline更新の是非）
+★ CEO作業待ち: 素材生成（asset-production-guide.md の優先順位表に従う）
 ```
 
 各フェーズ終了時に**自己レビュー**(改善点 / 懸念点 / 次フェーズへの影響)を提出する。
