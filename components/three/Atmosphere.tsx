@@ -8,11 +8,11 @@ import {
   DepthOfField,
   Noise,
   Vignette,
-  ChromaticAberration,
 } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
+import { camera as CAM, dof as DOF } from "@/lib/tokens";
 import NarrativeCorridor from "./NarrativeCorridor";
 
 /*
@@ -296,21 +296,8 @@ function Rig({ children }: { children: React.ReactNode }) {
  * ---------------------------------------------------------------- */
 
 function Cinematic() {
-  const ca = useRef<{ offset: THREE.Vector2 }>(null);
-
-  useFrame(() => {
-    // 速く動いたときだけ色収差が滲む。常時掛けると安っぽくなる。
-    const v = Math.min(Math.abs(viewProgress.velocity), 3) / 3;
-    const o = ca.current?.offset;
-    if (o) {
-      const target = 0.0004 + v * 0.0022;
-      o.x += (target - o.x) * 0.1;
-      o.y += (target * 0.6 - o.y) * 0.1;
-    }
-  });
-
   return (
-    <EffectComposer>
+    <EffectComposer multisampling={0}>
       {/* 線画の白を淡く発光させ、黒の中で"光っている"ように見せる */}
       {/* 閾値を上げ、線画の白だけを拾う。霧まで光ると画面が白飛びする */}
       <Bloom
@@ -320,13 +307,18 @@ function Cinematic() {
         mipmapBlur
       />
       {/* 奥ほどピントが外れる。平面の集合が"空間"に見える最大の要因 */}
-      <DepthOfField focusDistance={0.022} focalLength={0.08} bokehScale={3.2} />
-      <ChromaticAberration
-        ref={ca}
-        offset={new THREE.Vector2(0.0004, 0.00024)}
-        radialModulation
-        modulationOffset={0.3}
+      {/* ぼかしは低解像度でも結果がほぼ変わらない。最も高コストなので半解像度で処理する */}
+      <DepthOfField
+        focusDistance={DOF.focusDistance}
+        focalLength={DOF.focalLength}
+        bokehScale={DOF.bokehScale}
+        resolutionScale={DOF.resolutionScale}
       />
+      {/*
+        色収差は Phase 7 で無効化した（Performance Budget の削減順序 第1位）。
+        desktop が予算55fpsに対し48fpsで未達だったため。
+        モノクロの画づくりでは色収差の寄与が最も小さく、失うものが少ない。
+      */}
       {/* フィルムグレイン。これが入るだけでCGが"映像"側に寄る */}
       <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.2} />
       <Vignette eskil={false} offset={0.22} darkness={0.92} />
@@ -348,8 +340,13 @@ export default function Atmosphere({
         powerPreference: "high-performance",
         toneMapping: THREE.ACESFilmicToneMapping,
       }}
-      dpr={[1, 2]}
-      camera={{ position: [0, 0, 6], fov: 58, near: 0.1, far: 220 }}
+      dpr={CAM.dpr as unknown as [number, number]}
+      camera={{
+        position: CAM.position as unknown as [number, number, number],
+        fov: CAM.fov,
+        near: CAM.near,
+        far: CAM.far,
+      }}
       style={{ position: "absolute", inset: 0 }}
       onCreated={({ scene }) => {
         scene.fog = new THREE.FogExp2(FOG_COLOR, 0.014);

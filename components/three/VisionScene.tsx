@@ -145,6 +145,12 @@ export default function VisionScene({ count = 22 }: { count?: number }) {
       // 霧のブロブに対してアンチエイリアスは効果が薄く、負荷だけ増える
       gl={{ antialias: false, powerPreference: "high-performance" }}
       // 高DPR端末で内部解像度が跳ね上がるのを抑える
+      /*
+       * Vision は変更禁止（決定事項4）のため dpr を 1.75 のまま据え置く。
+       * Atmosphere 側は 1.5 に下げたが、ここを合わせると描画が変わり
+       * Baseline が差分を検出する（実測で確認）。
+       * Canvas統合(decision-log D-011)が承認された時点で揃える。
+       */
       dpr={[1, 1.75]}
       camera={{ position: [0, 0, 2], fov: 55, near: 0.1, far: 120 }}
       style={{ position: "absolute", inset: 0 }}

@@ -140,7 +140,13 @@ export const camera = {
   near: 0.1,
   far: 220,
   position: [0, 0, 6] as const,
-  dpr: [1, 2] as const,
+  /**
+   * 上限1.5。dpr2 では desktop 16fps / tablet 21fps と予算を大きく割った（実測）。
+   * ポストプロセスは全画面を複数回走査するためコストが画素数に線形で効く。
+   * 1.5 にすると画素数が44%減る。モノクロ・グレイン主体の画では
+   * dpr 1.5 と 2 の差は知覚しにくく、演出を削るより失うものが少ない。
+   */
+  dpr: [1, 1.5] as const,
 } as const;
 
 export const corridor = {
@@ -210,6 +216,11 @@ export const dof = {
   focusDistance: 0.022,
   focalLength: 0.08,
   bokehScale: 3.2,
+  /**
+   * 半解像度で処理する。ぼかしは低解像度でも結果がほぼ変わらないが、
+   * DOFはポストプロセス中で最も高コスト。フル解像度だと fps を大きく削る。
+   */
+  resolutionScale: 0.5,
 } as const;
 
 /* ────────────────────────────────────────────────────────────────
