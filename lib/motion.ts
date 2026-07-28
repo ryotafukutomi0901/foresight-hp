@@ -1,4 +1,12 @@
 import { gsap, CustomEase, SplitText, ScrollTrigger } from "@/hooks/useGsap";
+import {
+  duration,
+  ease as EASE_TOKEN,
+  easeCurves,
+  scroll,
+  stagger,
+  transform,
+} from "@/lib/tokens";
 
 /*
  * モーションの共通語彙。
@@ -12,44 +20,22 @@ export function registerBrandEases() {
   if (registered || typeof window === "undefined") return;
   registered = true;
 
-  // 入場: 強い減速。速く動き出してゆっくり着地する
-  CustomEase.create("brandOut", "0.16, 1, 0.3, 1");
-  // 場面転換: 対称的な加速→減速
-  CustomEase.create("brandInOut", "0.76, 0, 0.24, 1");
-  // 重量感: 動き出しが重く、止まり際に粘る
-  CustomEase.create("brandHeavy", "0.34, 0, 0.2, 1");
-  // 決定・スナップ
-  CustomEase.create("brandSnap", "0.2, 0.9, 0.1, 1");
-  // カメラの引き: 中盤を持続させ「頭→胴→翼」の過程を読ませる
-  CustomEase.create("brandDolly", "0.45, 0.05, 0.25, 1");
   /*
-   * 前進(ダイブ): 最後まで加速し続ける。
-   * 「目の中に入っていく」動きは、減速すると"止まって見える"ため
-   * 終端に向かって加速し続けるカーブでなければ没入感が出ない。
+   * ベジェ値は docs/motion-bible.md が正本で、lib/tokens.ts 経由で受け取る。
+   * ここに数値を直書きしないこと（Token Freeze）。
    */
-  CustomEase.create("brandDive", "0.6, 0, 0.9, 0.35");
+  for (const [name, curve] of Object.entries(easeCurves)) {
+    CustomEase.create(name, curve);
+  }
 }
 
-export const EASE = {
-  out: "brandOut",
-  inOut: "brandInOut",
-  heavy: "brandHeavy",
-  snap: "brandSnap",
-  dolly: "brandDolly",
-  dive: "brandDive",
-  linear: "none",
-} as const;
+export const EASE = EASE_TOKEN;
 
-export const DUR = {
-  micro: 0.3,
-  ui: 0.6,
-  enter: 1.0,
-  cine: 1.6,
-} as const;
+export const DUR = duration;
 
 /** スクロール連動の既定値。once:true で再生成を抑える。 */
 export const REVEAL_TRIGGER = {
-  start: "top 78%",
+  start: scroll.revealStart,
   once: true,
 } as const;
 
@@ -84,13 +70,13 @@ export function charsRise(
 
   const tween = gsap.from(split.chars, {
     yPercent: 60,
-    rotateX: -78,
+    rotateX: transform.rotateXCharFrom,
     autoAlpha: 0,
-    filter: "blur(8px)",
+    filter: `blur(${transform.blurLayerFrom}px)`,
     transformOrigin: "50% 100% -20px",
     duration: 1.0,
     ease: EASE.out,
-    stagger: { each: 0.022, from: "start" },
+    stagger: { each: stagger.char, from: "start" },
     ...vars,
   });
 
@@ -108,7 +94,7 @@ export function trackIn(
   vars: gsap.TweenVars = {},
 ): gsap.core.Tween {
   return gsap.from(target, {
-    letterSpacing: "0.5em",
+    letterSpacing: transform.letterSpacingTrackFrom,
     autoAlpha: 0,
     filter: "blur(6px)",
     duration: 1.6,
@@ -154,10 +140,10 @@ export function layerIn(
   vars: gsap.TweenVars = {},
 ): gsap.core.Tween {
   return gsap.from(target, {
-    scale: 0.94,
-    y: 40,
+    scale: transform.scaleLayerFrom,
+    y: transform.yLayerFrom,
     autoAlpha: 0,
-    filter: "blur(8px)",
+    filter: `blur(${transform.blurLayerFrom}px)`,
     transformOrigin: "50% 50%",
     duration: 1.4,
     ease: EASE.out,
@@ -171,10 +157,10 @@ export function revealUp(
   vars: gsap.TweenVars = {},
 ): gsap.core.Tween {
   return gsap.from(targets, {
-    yPercent: 110,
+    yPercent: transform.yPercentMask,
     duration: DUR.enter,
     ease: EASE.out,
-    stagger: 0.08,
+    stagger: stagger.line,
     ...vars,
   });
 }
@@ -189,7 +175,7 @@ export function fadeUp(
     y: 24,
     duration: DUR.enter,
     ease: EASE.out,
-    stagger: 0.1,
+    stagger: stagger.line,
     ...vars,
   });
 }

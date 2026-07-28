@@ -6,6 +6,12 @@ import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
 import { NARRATIVE_SHOTS } from "@/lib/content";
+import { corridor as C } from "@/lib/tokens";
+import {
+  createDitherMaterial,
+  pixelSizeForDistance,
+  type DitherUniforms,
+} from "./ditherMaterial";
 
 /*
  * NARRATIVE CORRIDOR — 10枚を3D空間に並べ、カメラがその間を通過する。
@@ -28,24 +34,22 @@ import { NARRATIVE_SHOTS } from "@/lib/content";
  */
 
 /*
- * 配置と可視域の設計。
+ * 配置と可視域の設計。数値は docs/camera-bible.md が正本で、
+ * lib/tokens.ts 経由で受け取る。ここに直書きしないこと（Token Freeze）。
  *
- * NEAR_OUT より手前には絶対に来させない。
- * 素材の実寸は267×296pxしかなく、寄りすぎると線が潰れて画質が破綻するため、
- * 「画面の約半分に収まる距離」で頭打ちにして、そこから先はフェードで消す。
+ * NEAR_OUT より手前には絶対に来させない。透視投影の式から逆算した値で、
+ * ここで頭打ちにすると拡大率が上限1.6倍にちょうど収まる（Bibleに検算あり）。
  *
- * LEAD_IN は、進行度0(=Hero〜第2セクション)の時点で1枚目が
- * FAR_OUT よりさらに奥に居るように取る。これで序盤は車が一切現れず、
- * 空気だけの画面になる。
+ * LEAD_IN は、進行度0(=Hero〜Vision)の時点で1枚目が FAR_OUT よりさらに
+ * 奥に居るように取る。これにより Hero/Vision では車が一切現れない。
  */
-const GAP = 16; // 1枚あたりの奥行き間隔
-const LEAD_IN = 128; // 進行度0での1枚目の距離。FAR_OUTより奥に置き、Hero/Visionでは何も見えないようにする
-const NEAR_OUT = -48; // これより手前には来させない(素材267pxの画質が保てる最短距離)
-const NEAR_IN = -30; // 完全に消えきる位置(NEAR_OUTより少し奥。ここでフェードし切る)
-const FAR_IN = -95; // ここまで来たら完全に見える
-const FAR_OUT = -125; // これより奥は見えない
-/** 最後の1枚が可視域の中央あたりまで来るのに必要な移動量。 */
-const TRAVEL = 210;
+const GAP = C.gap;
+const LEAD_IN = C.leadIn;
+const NEAR_OUT = C.nearOut;
+const NEAR_IN = C.nearIn;
+const FAR_IN = C.farIn;
+const FAR_OUT = C.farOut;
+const TRAVEL = C.travel;
 
 type Slot = {
   src: string;
@@ -65,12 +69,24 @@ function Shot({
   texture: THREE.Texture;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
-  const mat = useRef<THREE.MeshBasicMaterial>(null);
+
+  /*
+   * ディザマテリアルはテクスチャごとに1つ作る。
+   * useMemo で保持しないと毎レンダーでシェーダが再コンパイルされ、
+   * スクロール中に目に見えるコマ落ちが出る。
+   */
+  const { material } = useMemo(() => createDitherMaterial(texture), [texture]);
 
   useFrame((state) => {
     const m = mesh.current;
     if (!m) return;
     const t = state.clock.elapsedTime;
+    /*
+     * uniforms は useMemo の戻り値を直接書き換えず、必ず ref(mesh) から辿る。
+     * フック由来の値を書き換えると React Compiler の immutability 規則に触れ、
+     * また再レンダー時に参照が入れ替わって取りこぼす可能性がある。
+     */
+    const u = (m.material as THREE.ShaderMaterial).uniforms as DitherUniforms;
 
     // カメラは0にいて、回廊側が手前へ流れてくる
     const travelled = viewProgress.corridor * TRAVEL;
@@ -93,26 +109,44 @@ function Shot({
      *   nearVis … 手前(NEAR_OUT)から近づきすぎ(NEAR_IN)にかけて 1→0
      *   farVis  … 奥(FAR_OUT)から見え始め(FAR_IN)にかけて 0→1
      */
-    if (mat.current) {
-      const nearVis = 1 - THREE.MathUtils.smoothstep(z, NEAR_OUT, NEAR_IN);
+    {
       const farVis = THREE.MathUtils.smoothstep(z, FAR_OUT, FAR_IN);
-      mat.current.opacity = nearVis * farVis;
+      const nearVis = 1 - THREE.MathUtils.smoothstep(z, NEAR_OUT, NEAR_IN);
+
+      /*
+       * 中景でのみピークまで持ち上げる重み。
+       * 全ての板が等しく濃いと「奥行きのある空間」ではなく
+       * 「板が並んでいる」に見えるため、遠景は opacityFar で頭打ちにする。
+       */
+      const mid =
+        THREE.MathUtils.smoothstep(z, FAR_IN - 20, FAR_IN + 12) *
+        (1 - THREE.MathUtils.smoothstep(z, NEAR_OUT - 18, NEAR_OUT + 4));
+      const level = C.opacityFar + (C.opacityPeak - C.opacityFar) * mid;
+
+      // 近景は線形に落とすと消える瞬間が目立つため、先に薄くしておく
+      u.uOpacity.value =
+        farVis * Math.pow(nearVis, C.nearFalloffPower) * level;
+
+      /*
+       * 粒の大きさをカメラ距離に連動させる。
+       * 寄るほど粗くなるため、素材の解像度不足が
+       * 「意図した粒状感」として読める。
+       */
+      u.uPixelSize.value = pixelSizeForDistance(
+        state.camera.position.z - z,
+      );
     }
     m.visible = z < NEAR_IN + 2 && z > FAR_OUT - 5;
   });
 
   return (
-    <mesh ref={mesh} position={[slot.x, slot.y, slot.z]} rotation={[0, 0, slot.tilt]}>
+    <mesh
+      ref={mesh}
+      position={[slot.x, slot.y, slot.z]}
+      rotation={[0, 0, slot.tilt]}
+      material={material}
+    >
       <planeGeometry args={[slot.scale, slot.scale * (296 / 267)]} />
-      <meshBasicMaterial
-        ref={mat}
-        map={texture}
-        transparent
-        opacity={0}
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-        toneMapped={false}
-      />
     </mesh>
   );
 }
