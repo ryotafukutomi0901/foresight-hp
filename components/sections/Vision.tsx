@@ -35,17 +35,21 @@ export default function Vision() {
    * 6.9M画素を描いている状態で、これがdesktopのfps未達の主因。
    *
    * 見えていない間だけ止めるので見た目は変わらない。
-   * rootMarginを1画面分取り、入る前に再開させて復帰の瞬間を見せない。
+   *
+   * rootMargin は 25%。1画面分(100%)取ると Hero を表示している間ずっと
+   * Vision も描画され、Atmosphereと二重に塗ることになる
+   * （実測で Hero/Vision 区間だけ 49fps、他区間は 59〜60fps だった）。
+   * 25% あれば入る手前で再開が済み、復帰の瞬間は見えない。
    */
   const shell = useRef<HTMLDivElement>(null);
-  const [onScreen, setOnScreen] = useState(true);
+  const [onScreen, setOnScreen] = useState(false);
 
   useEffect(() => {
     const el = shell.current;
     if (!el) return;
     const io = new IntersectionObserver(
       ([entry]) => setOnScreen(entry.isIntersecting),
-      { rootMargin: "100% 0px" },
+      { rootMargin: "25% 0px" },
     );
     io.observe(el);
     return () => io.disconnect();

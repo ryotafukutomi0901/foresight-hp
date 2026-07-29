@@ -1,18 +1,25 @@
 /*
  * FPS 実測。docs/performance-budget.md の予算に対して検証する。
  *
- * 計測区間は「What We Can Do 以降」= 回廊が発火し、霧・塵・光条・
- * ポストプロセスが全て同時に走る最も重い区間。ここが通れば他は通る。
+ * ページ先頭から末尾まで一定速度で通しスクロールし、
+ *   - 全体の平均fps（予算の判定に使う「スクロール中の平均」）
+ *   - 区間ごとのfps（どこで落ちるかの特定）
+ * を同時に出す。
  *
- * requestAnimationFrame の間隔ではなく実フレーム数/実時間で出す。
- * rAF間隔の平均は、間引かれたフレームを1回として数えるため実態より良く出る。
+ * 特定の1セクションだけを測ると測る場所で結論が変わる。
+ * 実測で What We Can Do 56fps / Vision 48fps と別物になった。
  *
- * 使い方: node scripts/measure-fps.mjs
+ * 実フレーム数 ÷ 実時間で出す。rAFの間隔平均は間引かれたフレームを
+ * 1回として数えるため実態より良く出る。
+ * 1回の計測はばらつくので既定3回の中央値で判定する。
+ *
+ * 使い方: node scripts/measure-fps.mjs [--runs 3]
  */
 import { chromium } from "playwright-core";
 
-const CHROME =
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const runsArg = process.argv.indexOf("--runs");
+const RUNS = runsArg > -1 ? Number(process.argv[runsArg + 1]) : 3;
 
 const DEVICES = [
   { name: "desktop", width: 1440, height: 900, dpr: 2, budget: 55 },
@@ -20,64 +27,105 @@ const DEVICES = [
   { name: "mobile", width: 390, height: 844, dpr: 3, budget: 40 },
 ];
 
-const SCROLL_MS = 6000;
+const PASS_MS = 9000;
 
 const browser = await chromium.launch({
   executablePath: CHROME,
-  args: ["--use-gl=angle", "--ignore-gpu-blocklist", "--enable-gpu-rasterization"],
+  args: ["--use-gl=angle", "--ignore-gpu-blocklist"],
 });
 
-let failed = 0;
-console.log("FPS 実測（What We Can Do 区間・スクロール中）\n");
-
-for (const d of DEVICES) {
+async function pass(device) {
   const page = await browser.newPage({
-    viewport: { width: d.width, height: d.height },
-    deviceScaleFactor: d.dpr,
+    viewport: { width: device.width, height: device.height },
+    deviceScaleFactor: device.dpr,
   });
   await page.goto("http://localhost:3000", { waitUntil: "networkidle" });
-  // Opening を1度通してからでないと計測区間まで進めない
-  await page.waitForTimeout(2000);
+  // Opening(6.8s)を通してから測る
+  await page.waitForTimeout(7500);
 
-  const top = await page.evaluate(() => {
-    const el = document.getElementById("narrative");
-    let t = 0;
-    let n = el;
-    while (n) {
-      t += n.offsetTop;
-      n = n.offsetParent;
-    }
-    return t;
-  });
-  await page.evaluate((y) => window.scrollTo(0, y), top);
-  await page.waitForTimeout(1500);
-
-  const fps = await page.evaluate(
-    ({ from, ms }) =>
+  const result = await page.evaluate(
+    ({ ms }) =>
       new Promise((resolve) => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const marks = [...document.querySelectorAll("section[id]")].map((s) => {
+          let t = 0;
+          let n = s;
+          while (n) {
+            t += n.offsetTop;
+            n = n.offsetParent;
+          }
+          return { id: s.id, top: t };
+        });
         let frames = 0;
-        const t0 = performance.now();
+        const samples = [];
+        let last = performance.now();
+        const t0 = last;
         const tick = () => {
+          const now = performance.now();
           frames++;
-          const p = (performance.now() - t0) / ms;
+          samples.push({ y: window.scrollY, dt: now - last });
+          last = now;
+          const p = (now - t0) / ms;
           if (p >= 1) {
-            resolve((frames / ((performance.now() - t0) / 1000)));
+            const total = (now - t0) / 1000;
+            const per = {};
+            for (const s of samples) {
+              let id = "top";
+              for (const m of marks) if (s.y >= m.top - 100) id = m.id;
+              (per[id] ||= []).push(s.dt);
+            }
+            const region = Object.entries(per)
+              .map(([id, dts]) => [
+                id,
+                dts.length / (dts.reduce((a, b) => a + b, 0) / 1000),
+              ])
+              .filter(([, f]) => Number.isFinite(f));
+            resolve({ fps: frames / total, region });
             return;
           }
-          window.scrollTo(0, from + p * 2200);
+          window.scrollTo(0, p * max);
           requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
       }),
-    { from: top, ms: SCROLL_MS },
+    { ms: PASS_MS },
   );
 
-  const ok = fps >= d.budget;
+  await page.close();
+  return result;
+}
+
+console.log(`FPS 実測（先頭→末尾の通しスクロール・各${RUNS}回の中央値）\n`);
+let failed = 0;
+
+for (const d of DEVICES) {
+  const runs = [];
+  const regionRuns = [];
+  for (let i = 0; i < RUNS; i++) {
+    const r = await pass(d);
+    runs.push(r.fps);
+    regionRuns.push(r.region);
+  }
+  const sorted = [...runs].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  const ok = median >= d.budget;
   if (!ok) failed++;
   console.log(
-    `  ${ok ? "✓" : "✕"}  ${d.name.padEnd(8)} ${fps.toFixed(1).padStart(5)} fps  (予算 ${d.budget})`,
+    `  ${ok ? "✓" : "✕"}  ${d.name.padEnd(8)} 中央値 ${median.toFixed(1)} fps  ` +
+      `(${sorted.map((f) => f.toFixed(1)).join(" / ")})  予算 ${d.budget}`,
   );
-  await page.close();
+  if (d.name === "desktop") {
+    // 区間別も中央値で出す
+    const ids = [...new Set(regionRuns.flat().map(([id]) => id))];
+    const line = ids.map((id) => {
+      const vals = regionRuns
+        .map((r) => r.find(([x]) => x === id)?.[1])
+        .filter((v) => v != null)
+        .sort((a, b) => a - b);
+      return `${id} ${vals[Math.floor(vals.length / 2)].toFixed(0)}`;
+    });
+    console.log("        区間別: " + line.join(" / "));
+  }
 }
 
 await browser.close();
