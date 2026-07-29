@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { gsap, ScrollTrigger, useScopedGsap } from "@/hooks/useGsap";
 import { charsRise, layerIn, trackIn } from "@/lib/motion";
@@ -29,6 +30,26 @@ import { NARRATIVE, NARRATIVE_SHOTS } from "@/lib/content";
  */
 
 export default function Narrative() {
+  /*
+   * 図版のビットマップは reduced-motion のときだけ読む。
+   *
+   * 通常は3D側が本体で、この<ul>は sr-only。それでも next/image は
+   * 取得を走らせるため、画面に一度も出ない画像を10枚(実測215KB)
+   * 落としていた。3Dが動く環境では純粋な無駄になる。
+   *
+   * 読まない場合も figcaption の文言と alt 相当のテキストは残すので、
+   * 支援技術に渡る情報は変わらない。
+   */
+  const [showFigures, setShowFigures] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => setShowFigures(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
   const scope = useScopedGsap<HTMLElement>(({ scope }) => {
     const mm = gsap.matchMedia();
 
@@ -133,19 +154,23 @@ export default function Narrative() {
         {NARRATIVE_SHOTS.map((shot) => (
           <li key={shot.src}>
             <figure>
-              <div
-                data-narrative-figure-media
-                className="relative w-full max-w-[420px]"
-                style={{ aspectRatio: "267 / 296" }}
-              >
-                <Image
-                  src={shot.src}
-                  alt={shot.alt}
-                  fill
-                  sizes="(max-width: 768px) 90vw, 420px"
-                  className="art-blend object-contain"
-                />
-              </div>
+              {showFigures ? (
+                <div
+                  data-narrative-figure-media
+                  className="relative w-full max-w-[420px]"
+                  style={{ aspectRatio: "267 / 296" }}
+                >
+                  <Image
+                    src={shot.src}
+                    alt={shot.alt}
+                    fill
+                    sizes="(max-width: 768px) 90vw, 420px"
+                    className="art-blend object-contain"
+                  />
+                </div>
+              ) : (
+                <span className="sr-only">{shot.alt}</span>
+              )}
               <figcaption>
                 <span className="label text-ink-faint">{shot.kicker}</span>
                 <p className="mt-4 text-display-s text-ink">
