@@ -139,9 +139,17 @@ function FogVolume({ count }: { count: number }) {
   );
 }
 
-export default function VisionScene({ count = 22 }: { count?: number }) {
+export default function VisionScene({
+  count = 22,
+  active = true,
+}: {
+  count?: number;
+  /** 画面外では false。描画ループを止めてGPUを明け渡す（見た目は変わらない）。 */
+  active?: boolean;
+}) {
   return (
     <Canvas
+      frameloop={active ? "always" : "never"}
       // 霧のブロブに対してアンチエイリアスは効果が薄く、負荷だけ増える
       gl={{ antialias: false, powerPreference: "high-performance" }}
       // 高DPR端末で内部解像度が跳ね上がるのを抑える

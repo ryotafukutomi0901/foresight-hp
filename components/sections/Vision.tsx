@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { viewProgress } from "@/lib/viewProgress";
 import { VISION } from "@/lib/content";
@@ -25,6 +25,31 @@ const VisionScene = dynamic(() => import("@/components/three/VisionScene"), {
 
 export default function Vision() {
   const [canRender3D, setCanRender3D] = useState(false);
+
+  /*
+   * 画面外では描画そのものを止める。
+   *
+   * Visionは1画面分(h-100svh)しかないのに、R3Fは既定で常時描画し続けるため、
+   * ユーザーが何セクションも先に居る間もフルビューポート(実測2520×1575)を
+   * 毎フレーム塗り続けていた。常設のAtmosphereと合わせて毎フレーム
+   * 6.9M画素を描いている状態で、これがdesktopのfps未達の主因。
+   *
+   * 見えていない間だけ止めるので見た目は変わらない。
+   * rootMarginを1画面分取り、入る前に再開させて復帰の瞬間を見せない。
+   */
+  const shell = useRef<HTMLDivElement>(null);
+  const [onScreen, setOnScreen] = useState(true);
+
+  useEffect(() => {
+    const el = shell.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setOnScreen(entry.isIntersecting),
+      { rootMargin: "100% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const scope = useScopedGsap<HTMLElement>(({ scope }) => {
     const mm = gsap.matchMedia();
@@ -113,8 +138,8 @@ export default function Vision() {
       className="relative h-[100svh] w-full overflow-hidden"
     >
       {/* 3D霧。装飾のため支援技術からは隠す */}
-      <div aria-hidden className="absolute inset-0">
-        {canRender3D ? <VisionScene /> : null}
+      <div ref={shell} aria-hidden className="absolute inset-0">
+        {canRender3D ? <VisionScene active={onScreen} /> : null}
       </div>
 
       {/* 3Dの上に重ねる暗幕。文字の可読性を担保する */}
