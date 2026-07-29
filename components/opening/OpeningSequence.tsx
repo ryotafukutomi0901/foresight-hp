@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import CloudLayers from "./CloudLayers";
-import { gsap, useGSAP } from "@/hooks/useGsap";
+import { Flip, gsap, useGSAP } from "@/hooks/useGsap";
 import { registerBrandEases } from "@/lib/motion";
 import {
   markOpeningDone,
@@ -12,13 +12,14 @@ import {
 } from "@/lib/sequence";
 
 /*
- * OPENING — 約6.0秒
+ * OPENING — 約6.8秒
  *
  *  0.0–0.9  ロゴが霧の奥から結像する
  *  0.9–1.5  目が一度だけ瞬く
- *  1.5–3.6  目の中へ入っていく          ← この演出の核
+ *  1.5–3.6  目の中へ入っていく            ← この演出の核
  *  3.6–4.6  瞳の闇を抜けて雲へ
- *  4.6–6.0  雲が晴れ、Heroへ繋がる
+ *  4.6–5.5  雲が晴れる
+ *  5.5–6.8  ロゴがヘッダーの定位置へ収まる(GSAP Flip) ← ページとの継ぎ目
  *
  * 「引いて全体を見せる」のではなく「入っていく」。
  * Foresight=見通す、という名前に対して、視点が対象の内側へ入る動きの方が正しい。
@@ -28,7 +29,11 @@ import {
  * (スキップ・シーク・速度変更ができなくなり、cleanupも保証できないため)。
  */
 
-const TOTAL = 6.0;
+/*
+ * 総尺。L-08(Flipでヘッダーへ)を末尾に足したぶん、当初の6.0秒から伸びている。
+ * ただしFlipはHeroの入場と重なって進むため、体感の待ち時間は変わらない。
+ */
+const TOTAL = 6.8;
 
 /* ロゴ画像内での目の位置(実測)。ここがカメラの進入点になる。 */
 const EYE = { x: 53.5, y: 47.5 };
@@ -217,11 +222,59 @@ export default function OpeningSequence() {
           "clear+=0.2",
         )
         // 雲が晴れる合図。Heroの入場はここから始まる(幕の下で終わらせない)
-        .add(() => markOpeningDone(), "clear+=0.5")
+        .add(() => markOpeningDone(), "clear+=0.5");
+
+      /* ---- L-08 Flip でヘッダーへ ----
+         雲が晴れたあと、ロゴが中央に戻り、そのままヘッダーの定位置へ収まる。
+         これが「Loadingは別物ではなくページの一部だった」と理解させる継ぎ目。
+
+         Flip.fit は fromEl を toEl の矩形にぴったり重ねる。
+         ヘッダーは markOpeningDone まで autoAlpha 0 だが、
+         visibility:hidden はレイアウトを保持するため矩形は正しく測れる。 */
+      tl.set("[data-logo]", { scale: 1, filter: "blur(0px)" }, "clear+=0.55")
+        .to(
+          "[data-logo]",
+          { autoAlpha: 1, duration: 0.35, ease: "brandOut" },
+          "clear+=0.55",
+        )
+        .add(() => {
+          const from = root.current?.querySelector<HTMLElement>("[data-logo]");
+          const to = document.querySelector<HTMLElement>("[data-header-logo]");
+          if (!from || !to) return;
+          Flip.fit(from, to, {
+            duration: 1.0,
+            ease: "brandOut",
+            scale: true,
+            absolute: true,
+          });
+        }, "clear+=0.95")
+        /*
+         * 幕と雲を抜き、ロゴだけを残す。
+         * 幕(root の背景色)も同時に透明にしないと、ロゴが「黒画面の上」を
+         * 飛ぶことになり、Heroへ着地している感覚が出ない(実測で確認)。
+         * 透明にすることで、実際のHeroの上をロゴが横切って定位置に収まる。
+         */
+        .to(
+          [
+            "[data-vignette]",
+            "[data-blackout]",
+            "[data-cloud-corridor]",
+            "[data-cloud-in='left']",
+            "[data-cloud-in='right']",
+            "[data-cloud-whiteout]",
+          ],
+          { autoAlpha: 0, duration: 0.5, ease: "power2.inOut" },
+          "clear+=0.95",
+        )
         .to(
           root.current,
-          { autoAlpha: 0, duration: 0.75, ease: "power2.inOut" },
-          "clear+=0.55",
+          { backgroundColor: "rgba(9,9,9,0)", duration: 0.5, ease: "power2.inOut" },
+          "clear+=0.95",
+        )
+        .to(
+          root.current,
+          { autoAlpha: 0, duration: 0.3, ease: "power1.out" },
+          "clear+=1.75",
         );
 
       tl.totalDuration(TOTAL);
@@ -269,7 +322,8 @@ export default function OpeningSequence() {
     <div
       ref={root}
       data-opening
-      className="fixed inset-0 z-[100] overflow-hidden bg-void"
+      className="fixed inset-0 z-[100] overflow-hidden"
+      style={{ backgroundColor: "var(--color-void)" }}
     >
       <div aria-hidden className="absolute inset-0">
         {/* 舞台。目を原点に、ここごと拡大して「中へ入る」 */}
@@ -277,16 +331,16 @@ export default function OpeningSequence() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div
               data-logo
-              className="relative w-[min(74vw,600px)]"
+              className="art-blend relative w-[min(74vw,600px)] bg-white"
               style={{ aspectRatio: "1536 / 1085", willChange: "transform, filter" }}
             >
               <Image
-                src="/logo2.PNG"
+                src="/logo2.svg"
                 alt=""
                 fill
                 sizes="(max-width: 768px) 74vw, 600px"
                 priority
-                className="art-blend object-contain"
+                className="object-contain"
               />
               {/*
                 瞼。ロゴの目は「白い眼球＋黒い虹彩」が白い顔面に埋まった構造のため、

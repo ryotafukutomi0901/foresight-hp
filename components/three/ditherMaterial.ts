@@ -149,7 +149,17 @@ export function createDitherMaterial(texture: THREE.Texture) {
     uMap: { value: texture },
     uOpacity: { value: 0 },
     uPixelSize: { value: dither.pixelSizeFar },
-    uResolution: { value: new THREE.Vector2(267, 296) },
+    /*
+     * テクスチャの実寸。素材の差し替えで変わるため画像から読む。
+     * ピクセル化の量子化グリッドがこの値を基準にするので、
+     * 固定値にすると素材を替えた瞬間に粒の細かさが意図とズレる。
+     */
+    uResolution: {
+      value: new THREE.Vector2(
+        (texture.image as { width?: number } | undefined)?.width ?? 267,
+        (texture.image as { height?: number } | undefined)?.height ?? 296,
+      ),
+    },
     uMatrixSize: { value: dither.matrixSize },
     uDarkCutoff: { value: dither.darkCutoff },
     uLightCutoff: { value: dither.lightCutoff },

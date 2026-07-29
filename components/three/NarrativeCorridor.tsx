@@ -77,6 +77,16 @@ function Shot({
    */
   const { material } = useMemo(() => createDitherMaterial(texture), [texture]);
 
+  /*
+   * 板の縦横比はテクスチャの実寸から取る。
+   * 素材を差し替えると寸法が変わるため(旧267×296 / 新2048×2048)、
+   * ここを固定値にすると差し替えのたびに画が歪む。
+   */
+  const aspect = useMemo(() => {
+    const img = texture.image as { width?: number; height?: number } | undefined;
+    return img?.width && img?.height ? img.width / img.height : 267 / 296;
+  }, [texture]);
+
   useFrame((state) => {
     const m = mesh.current;
     if (!m) return;
@@ -146,7 +156,7 @@ function Shot({
       rotation={[0, 0, slot.tilt]}
       material={material}
     >
-      <planeGeometry args={[slot.scale, slot.scale * (296 / 267)]} />
+      <planeGeometry args={[slot.scale, slot.scale / aspect]} />
     </mesh>
   );
 }
