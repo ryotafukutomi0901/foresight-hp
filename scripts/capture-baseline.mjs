@@ -13,6 +13,15 @@
  *
  * 前提: dev サーバが http://localhost:3000 で起動していること。
  */
+/*
+ * ⚠️ dev server に対して実行すること（基準画像も dev で撮っている）。
+ *
+ * 本番ビルド(npm start)に対して --check を掛けると、Vision とは無関係な
+ * スクロールインジケータのCSSアニメーションが別位相で撮れて8件落ちる。
+ * このスクリプトは performance.now() を凍結して時間依存を消しているが、
+ * CSSアニメーションはコンポジタ側の時計で動くため凍結の対象外になる。
+ * dev/prod で描画そのものに差は無いことは確認済み（dev同士なら15/15が0px）。
+ */
 import { chromium } from "playwright-core";
 import fs from "node:fs";
 import path from "node:path";

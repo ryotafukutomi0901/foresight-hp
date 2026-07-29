@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { gsap, useScopedGsap } from "@/hooks/useGsap";
+import { gsap, ScrollTrigger, useScopedGsap } from "@/hooks/useGsap";
 import { charsRise, layerIn, trackIn } from "@/lib/motion";
 import { viewProgress } from "@/lib/viewProgress";
+import { armCorridorAssets } from "@/lib/corridorAssets";
 import { NARRATIVE, NARRATIVE_SHOTS } from "@/lib/content";
 
 /*
@@ -39,6 +40,24 @@ export default function Narrative() {
       (ctx) => {
         const { reduced } = ctx.conditions as Record<string, boolean>;
         if (reduced) return;
+
+        /*
+         * 回廊テクスチャ(約790KB)の先読み開始点。
+         *
+         * 初期表示では取りに行かず、Narrativeの2画面手前で取得を始める。
+         * 到達してから取ると板がポップインするため、必ず手前で撃つ。
+         * ScrollTrigger は refresh 時に現在位置で評価されるので、
+         * #narrative へ直接ジャンプした場合もこの場で即 arm される。
+         */
+        ScrollTrigger.create({
+          trigger: scope.current,
+          start: "top bottom+=200%",
+          once: true,
+          onEnter: armCorridorAssets,
+          onRefresh: (self) => {
+            if (self.progress > 0) armCorridorAssets();
+          },
+        });
 
         /*
          * 3D回廊への唯一の受け渡し点。

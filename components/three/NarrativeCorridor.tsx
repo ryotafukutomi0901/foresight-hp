@@ -1,12 +1,17 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useSyncExternalStore } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
 import { NARRATIVE_SHOTS } from "@/lib/content";
 import { corridor as C } from "@/lib/tokens";
+import {
+  isCorridorArmed,
+  isCorridorArmedOnServer,
+  subscribeCorridorAssets,
+} from "@/lib/corridorAssets";
 import {
   createDitherMaterial,
   pixelSizeForDistance,
@@ -161,7 +166,24 @@ function Shot({
   );
 }
 
+/**
+ * 先読みが始まるまで何も描かない。
+ *
+ * useTexture はサスペンドするため、armされるまでこのコンポーネントを
+ * 「テクスチャに触れない状態」で返す必要がある。中身を分けているのは
+ * フックの呼び出し順を変えずに取得開始を遅らせるため。
+ */
 export default function NarrativeCorridor() {
+  const armed = useSyncExternalStore(
+    subscribeCorridorAssets,
+    isCorridorArmed,
+    isCorridorArmedOnServer,
+  );
+  if (!armed) return null;
+  return <CorridorBody />;
+}
+
+function CorridorBody() {
   const { size } = useThree();
   const group = useRef<THREE.Group>(null);
 
