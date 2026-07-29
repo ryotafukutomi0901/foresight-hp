@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Shippori_Mincho, Archivo } from "next/font/google";
+import localFont from "next/font/local";
+import { Archivo } from "next/font/google";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
@@ -12,18 +13,31 @@ import "./globals.css";
  * ゴシックは均一で力強いが、余白を主役にした静かな画面では硬く平板に見えた。
  * 明朝は縦画と横画の抑揚があり、大きな余白と組んだときに「静けさ」と品が出る。
  *
- * preload: false は必須。和文フォントは約120のunicode-rangeサブセットに分割されており、
- * 既定(preload: true)だと全サブセットを先読みして数MBを転送してしまう。
- * falseにすると、ブラウザがページ内の文字に必要なサブセットだけを取得する。
- * ウェイトも本文400・強調600の2つに絞る(1ウェイト増えるごとに全サブセットが増える)。
+ * Google Fonts配信ではなく自前のサブセットを使う。
+ * Shippori Mincho は約120のunicode-rangeに分割配信されるため、preload:false でも
+ * 和文ページでは実測63ファイル・865KB落ちてきて、総転送量予算(1229KB)の7割を
+ * 1書体が占めていた。このサイトの文言は静的なので、実際に出る文字だけを
+ * 1ファイルへ焼いて自己ホストする。**書体そのものは同一なので見た目は変わらない。**
+ *
+ * 生成: node scripts/build-font-subset.mjs（SIL OFL 1.1・自己ホスト可）
+ * ⚠️ 本文を追加・変更したら再生成すること。未収録の字はフォールバック書体で出る。
  */
-const shippori = Shippori_Mincho({
+const shippori = localFont({
   variable: "--font-shippori",
-  subsets: ["latin"],
-  weight: ["400", "600"],
   display: "swap",
-  preload: false,
   fallback: ["Hiragino Mincho ProN", "Yu Mincho", "serif"],
+  src: [
+    {
+      path: "../public/fonts/shippori-mincho-400.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/shippori-mincho-600.woff2",
+      weight: "600",
+      style: "normal",
+    },
+  ],
 });
 
 // 欧文: 大型ラテン見出し(SEE BEYOND THE CONDITION.)とラベル用のグロテスク。

@@ -52,3 +52,9 @@ public/siteparts.png
 # public/images/foresight/vehicle-parts/01-suv-whole.webp の生成元にのみ使い、
 # 配信はしないためデプロイ対象から外す。再生成する場合はこのファイルが要る。
 public/vehicle-master.png
+
+# 和文フォントの原本(TTF・各8.6MB)。
+# scripts/build-font-subset.mjs の入力にのみ使い、配信はしない。
+# サブセット再生成に必要なので手元には残す。
+# 取得元: https://github.com/google/fonts/tree/main/ofl/shipporimincho (SIL OFL 1.1)
+.font-src/
