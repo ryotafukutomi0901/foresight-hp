@@ -78,7 +78,49 @@
 - Lighthouse(モバイル) / `chrome://tracing` でGPUメモリ
 - **Phase 7 で実測し、超過分は上の順序で削る**
 
-## 実測（車両マスター組み込み後・**本番ビルド** `npm run build` + `npm start`）
+## 実測（品質向上フェーズ後・**本番ビルド** `npm run build` + `npm start`）
+
+**総転送量・FPS ともに予算内に入った。** 演出は一切削っていない。
+
+| 指標 | 予算 | 着手前 | 現在 | |
+|---|---|---|---|---|
+| 総転送量 | ≤ 1229KB | 2526KB | **1037KB** | ✓ −59% |
+| FPS desktop | ≥ 55 | 52.0 | **58.2** | ✓ |
+| FPS tablet | ≥ 40 | 60.1 | **60.0** | ✓ |
+| FPS mobile | ≥ 40 | 60.1 | **60.1** | ✓ |
+| WebGLコンテキスト数 | 1 | 2 | **2** | ✕ [D-018](./decision-log.md) 要CEO判断 |
+
+**転送量の内訳（1037KB）**
+
+| | wire | |
+|---|---|---|
+| js | 584KB | three.js / postprocessing / GSAP を含む |
+| woff2 | 233KB | 自己ホストのサブセット2ファイル（[D-016](./decision-log.md)） |
+| next/image | 169KB | Opening の雲3枚 |
+| その他 | 41KB | css / ico / svg |
+
+**何を削って達成したか（演出は削っていない）**
+
+1. **回廊テクスチャ 792KB を初期取得から外した**（[D-015](./decision-log.md)）。描画されないものを初回訪問に載せていただけ。2画面手前で先読みするのでポップインしない
+2. **和文フォント 865KB → 233KB**（[D-016](./decision-log.md)）。書体は同一で、画素単位で一致することを検証済み
+3. **図版のビットマップ215KB を reduced-motion 時のみ読むようにした**。3Dが本体のときは画面に一度も出ない画像だった
+
+**FPS の区間別（desktop）**
+
+`top 52 / vision 52 / philosophy 60 / narrative 60 / buy 60 / sell 60 / find 60 / contact 60 / company 60`
+
+Hero と Vision だけが52fps。**原因はWebGLで、canvasを全て外すと同区間が60fpsになる。**
+この区間だけ Atmosphere と Vision の2つのcanvasが同時に描画されるため。
+改善の余地は [D-018](./decision-log.md) に実測付きで整理した（統合すれば同区間 +8〜9fps）。
+
+**まだ予算を超えている項目**
+
+- **js 584KB**（予算は「three.jsを含まない初期チャンクで250KB」なので直接比較はできないが、絞る余地はある）。`import * as THREE` を名前付きimportへ寄せる等
+- **WebGLコンテキスト数 2**（予算1）。[D-018](./decision-log.md)
+
+---
+
+## 旧実測（車両マスター組み込み時点・参考）
 
 ### FPS
 
