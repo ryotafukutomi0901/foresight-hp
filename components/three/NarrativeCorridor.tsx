@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useSyncExternalStore } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
-import { useTexture } from "@react-three/drei";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
 import { NARRATIVE_SHOTS } from "@/lib/content";
@@ -199,7 +198,24 @@ function CorridorBody() {
     () => NARRATIVE_SHOTS.map((shot) => shot.src),
     [],
   );
-  const textures = useTexture(sources);
+
+  /*
+   * drei の useTexture ではなく fiber の useLoader を直接使う。
+   * useTexture は「useLoader + gl.initTexture + オブジェクトキー対応」で、
+   * ここで必要なのは前2つだけ。drei への依存を1箇所のために抱えない。
+   *
+   * ⚠️ initTexture を省略しないこと。
+   * これが無いとテクスチャのGPUアップロードが「最初に描画された瞬間」まで
+   * 遅延する。回廊は gateProgress で長く不可視のままなので、
+   * ゲートが開いた瞬間に10枚まとめてアップロードが走りコマ落ちする。
+   * (useTexture が内部でやっているのと同じこと。three#22696)
+   */
+  const textures = useLoader(THREE.TextureLoader, sources);
+  const gl = useThree((state) => state.gl);
+
+  useEffect(() => {
+    for (const t of textures) gl.initTexture(t);
+  }, [gl, textures]);
 
   const slots = useMemo<Slot[]>(() => {
     const rnd = (n: number) => {
