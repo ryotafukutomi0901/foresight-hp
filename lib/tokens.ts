@@ -325,3 +325,46 @@ export const scroll = {
   pinUnseenDesktop: "+=380%",
   pinUnseenMobile: "+=280%",
 } as const;
+
+/* ────────────────────────────────────────────────────────────────
+ * HERO / SILENT GAZE — 出典: docs/hero-bible.md
+ *
+ * Heroの右半分に引かれる「一本の光の線」。決定事項1(Silent Gaze)の
+ * Hero側での実体で、鷹を実体として見せずに「見通す視線」だけを置く。
+ *
+ * 幾何は hero-bible.md の Hero Layout のASCII図が正本。
+ * 右半分・左下から右上へ上昇する対角線。
+ * ──────────────────────────────────────────────────────────────── */
+
+export const heroGaze = {
+  /*
+   * 線の両端（Heroセクションを 0-100 とした%座標）。
+   * hero-bible の ASCII図では、右半分を左下→右上に横切る対角線。
+   */
+  x1: 52,
+  y1: 74,
+  x2: 96,
+  y2: 26,
+
+  /** H-01: 中央から左右へ伸びる時間。hero-bible「Flip完了直後 / +1.2s」 */
+  drawDuration: 1.2,
+
+  /*
+   * ⚠️ 以下3つは hero-bible に数値の記載が無く、実装時に決めた暫定値。
+   * decision-log D-020 に候補として記録済み。CEO承認で確定させる。
+   */
+  /** 線の基準不透明度。明滅の中心値 */
+  opacityBase: 0.5,
+  /** 線幅(px)。1pxだと高DPRで消えかけ、2pxだと装飾に見えた */
+  strokeWidth: 1.5,
+  /** にじみ(feGaussianBlur)の半径。線幅に対する倍率 */
+  glowBlur: 3,
+
+  /** H-05: 明滅。hero-bible「周期6秒・振幅0.06」 */
+  pulsePeriod: 6,
+  pulseAmplitude: 0.06,
+
+  /** H-05: ポインタ追従パララックスの振れ幅(px)。hero-bible Hero Camera */
+  parallaxGaze: 12,
+  parallaxHeadline: 4,
+} as const;
