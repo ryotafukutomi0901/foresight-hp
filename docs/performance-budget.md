@@ -132,9 +132,37 @@ Hero と Vision だけが52fps。**原因はWebGLで、canvasを全て外すと�
 統合すれば同区間 +8〜9fps 得られるが Vision の見た目が変わるため実施しない
 （[D-011](./decision-log.md#d-011-webgl-canvas-を統合しない確定)。**この区間が単独で55fpsを下回ったら再検討する**）。
 
-**まだ予算を超えている項目**
+**JS初期容量は予算内（2026-07-30に分類して確認）**
 
-- **js 584KB**（予算は「three.jsを含まない初期チャンクで250KB」なので直接比較はできないが、絞る余地はある）。`import * as THREE` を名前付きimportへ寄せる等
+> **過去の報告を訂正する。** 以前「js 584KB に削減余地」と報告したが、
+> これは**予算の分母を誤っていた**。予算は「**three.jsを含まない**初期チャンクで250KB」であり、
+> 3Dスタックは対象外。チャンクを実際に分類した結果は以下。
+
+| 区分 | wire | 予算 | |
+|---|---|---|---|
+| 3Dスタック（three / r3f / postprocessing） | 409KB | **対象外** | — |
+| **それ以外（next / react / gsap / 自作コード）** | **164KB** | ≤250KB | **✓ 86KB の余裕** |
+| 合計 | 573KB | — | |
+
+分類方法は `WebGLRenderer` / `EffectComposer` / `useThree` 等の識別子でチャンクを判定。
+
+**3Dスタックが 409KB ある理由（削れない）**
+
+`@react-three/fiber` は内部で **`extend(THREE)`** を実行し、
+**three の名前空間全体を実行時カタログへ登録する**（JSXタグ名から動的にクラスを解決するため）。
+これは `Object.assign(catalogue, THREE)` という実行時処理なので、**原理的に tree-shaking できない。**
+
+実測でも `AnimationMixer` / `PMREMGenerator` / `SkinnedMesh` / `InstancedMesh` など
+**一切使っていない three のクラスがすべてバンドルに残っている**ことを確認した。
+
+→ したがって **自前コードの `import * as THREE` を名前付きimportへ書き換えても 0KB。**
+参照している16シンボル（`Group` / `Mesh` / `ShaderMaterial` / `MathUtils` 等）はいずれも
+three のコアで、R3Fが必ず引き込むもの。**書き換えは効果ゼロなので行わない。**
+
+なお3Dスタックは `AtmosphereMount` / `VisionScene` の `dynamic(ssr:false)` により
+**既に初期チャンクから分離済み**で、初回描画をブロックしていない。
+Opening の6.8秒の間に並行取得され、Heroが現れる時点では準備が済んでいる。
+**これ以上遅らせると Hero に霧が間に合わずポップインする**ため、追加の遅延はしない。
 
 ---
 
