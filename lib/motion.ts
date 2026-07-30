@@ -103,24 +103,12 @@ export function trackIn(
   });
 }
 
-/** ラベルが解読されるように現れる。 */
-export function scrambleIn(
-  target: gsap.TweenTarget,
-  text: string,
-  vars: gsap.TweenVars = {},
-): gsap.core.Tween {
-  return gsap.to(target, {
-    duration: 1.1,
-    ease: "none",
-    scrambleText: {
-      text,
-      chars: "upperCase",
-      speed: 0.4,
-      revealDelay: 0.15,
-    },
-    ...vars,
-  });
-}
+/*
+ * scrambleIn（ラベルが解読されるように現れる）は削除した。
+ * 使用箇所が無く、これ1つのために ScrambleTextPlugin を
+ * 登録し続けるとバンドルに残り続けるため。
+ * 復活させる場合は hooks/useGsap.ts にプラグイン登録を戻すこと。
+ */
 
 /* ------------------------------------------------------------------ *
  * レイヤー(面)のアニメーション
