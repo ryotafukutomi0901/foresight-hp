@@ -58,6 +58,33 @@ node scripts/measure-transfer.mjs
 
 現在の受け入れ状況は `node scripts/intake-vehicle.mjs`（引数なし）で確認できる。
 
+## 2.5 生成解像度が 4096px に満たない場合（Upscayl + 正方形化）
+
+生成AIの出力が 1672×941 などで届くことがある。その場合は**アップスケール → 正方形化**してから受け入れる。
+
+```bash
+UB=/Applications/Upscayl.app/Contents/Resources/bin/upscayl-bin
+M=/Applications/Upscayl.app/Contents/Resources/models
+
+# 1. 4倍にする（線画には digital-art-4x が最適）
+$UB -i 元画像.png -o /tmp/up.png -m $M -n digital-art-4x -f png
+
+# 2. 被写体を中央に置いた正方形（余白12%）へ整えて4096pxにする
+node scripts/square-pad.mjs /tmp/up.png assets-src/vehicle/V-02-side.png 4096
+```
+
+**アップスケールは実際に画質を上げる。** 配信は1024pxなので「元が1672pxなら足りるのでは」と考えたが、
+グリルのメッシュと `FORESIGHT` の文字で比較したところ、**Upscayl経由の方が線が明確に滑らかで均一**だった。
+AIが細線を再構成してから縮小するため、直接縮小より輪郭が壊れにくい。
+**ディザリングはノイズを増幅するので、この差は最終的な見え方に効く。**
+
+`scripts/square-pad.mjs` は被写体のバウンディングボックスを測り、
+**長辺が76%（＝各辺12%の余白）**に収まる正方形キャンバスへ整える。**被写体は拡縮せず、黒を足すだけ。**
+
+> ⚠️ sharp の `extend` と `extract` を1つのパイプラインに並べないこと。
+> 呼び出し順ではなく固定順で適用されるため "bad extract area" になる。**2パスに分ける。**
+> また全周に大きく padding すると画素数上限(268M)を超えるので、**必要な分だけ**足す。
+
 ## 3. 検査項目
 
 `scripts/intake-vehicle.mjs` が自動で測る。**✕が1つでもあれば配置しない。**
