@@ -28,13 +28,17 @@ Phase 3  Shot List          ✅ 完了
          ★ Baseline Capture ✅ 完了（docs/baseline/ に15枚）
 Phase 4  Motion Prototype   ✅ 完了
 Phase 5  Asset Production Guide ✅ 完了 → ★CEOが画像生成
-Phase 6  Implementation   ✅ 一部完了（Find改名 / 不要アセット除外 / D-011保留）
-Phase 7  Optimization     ✅ 完了（desktop 16→54fps）
+Phase 6  Implementation   ✅ 完了（Find改名 / 不要アセット除外 / 明暗反転）
+Phase 7  Optimization     ✅ 完了（転送量 2526→1037KB / desktop 52.0→58.2fps）
 Phase 8  Final QA         ✅ 完了
 
-★ CEO判断待ち: D-011（Canvas 2重起動）/ D-012（Baseline更新の是非）
-★ CEO作業待ち: 素材生成（asset-production-guide.md の優先順位表に従う）
+★ 決着済: D-011（Canvas統合＝実施しない・2026-07-30 CEO決裁）
+          D-012（Baseline更新＝正式採用・同日）
+★ CEO作業待ち: 車両素材9点（V-02 / V-03 / M-02 / M-03 / D-01〜D-05）
+              → 受け入れ手順は docs/asset-intake.md
 ```
+
+**Performance Budget は全項目達成済み**（WebGLコンテキスト数の項は D-011 確定に伴い実態へ改訂）。
 
 各フェーズ終了時に**自己レビュー**(改善点 / 懸念点 / 次フェーズへの影響)を提出する。
 
