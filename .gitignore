@@ -48,9 +48,8 @@ docs/baseline/_diff/
 # 配信はしないためデプロイ対象から外す（1.9MB）
 public/siteparts.png
 
-# CEO支給の車両マスター原本（5016px/15MB）。
-# public/images/foresight/vehicle-parts/01-suv-whole.webp の生成元にのみ使い、
-# 配信はしないためデプロイ対象から外す。再生成する場合はこのファイルが要る。
+# 旧: 車両マスターの置き場所。assets-src/vehicle/ へ集約したため空。
+# public/ に原本を置くと参照されないまま毎回デプロイされる（decision-log D-013）。
 public/vehicle-master.png
 
 # 和文フォントの原本(TTF・各8.6MB)。
@@ -58,3 +57,8 @@ public/vehicle-master.png
 # サブセット再生成に必要なので手元には残す。
 # 取得元: https://github.com/google/fonts/tree/main/ofl/shipporimincho (SIL OFL 1.1)
 .font-src/
+
+# CEO支給の素材原本（4096px PNG・1枚あたり数十MB）。
+# scripts/intake-vehicle.mjs の入力にのみ使い、配信はしない。
+# 再変換に必要なので手元には残す。受け入れ手順は docs/asset-intake.md
+assets-src/
