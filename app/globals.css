@@ -26,6 +26,23 @@
   --color-rule: #1a1a1d; /* 罫線 */
   --color-rule-strong: #2c2c31; /* 強調罫線 */
 
+  /*
+   * ---- High Gloss Mono（決定事項5）----
+   * 明転区間(Buy / Sell / Find)で使う5色。中間色を作らず、これ以外を増やさない。
+   * 暗転区間と同じ5色を、役割だけ反転させて使い切る。
+   *
+   *   #FFFFFF  DARK:強調        LIGHT:持ち上がった面
+   *   #F2F2F2  DARK:文字(主要)  LIGHT:地
+   *   #CFCFCF  DARK:文字(補助)  LIGHT:罫線・沈んだ面
+   *   #2F2F2F  DARK:面・罫線    LIGHT:文字(補助)
+   *   #090909  DARK:地          LIGHT:文字(主要)
+   */
+  --color-mono-100: #ffffff;
+  --color-mono-200: #f2f2f2;
+  --color-mono-300: #cfcfcf;
+  --color-mono-700: #2f2f2f;
+  --color-mono-900: #090909;
+
   /* ---- Typography ----
    * 和文は明朝。ゴシックより線が細く抑揚があり、余白と組んだときに静けさが出る。
    * 欧文はグロテスクで受けて、和文の情緒と欧文の精度を対比させる。
@@ -106,6 +123,72 @@
 }
 
 @layer components {
+  /*
+   * ---- 明転区間（Buy / Sell / Find）----
+   *
+   * 「暗闇で見つけた価値を光の下へ戻す」章。明度と物語を一致させる。
+   *
+   * 各コンポーネントの色クラスを書き換えるのではなく、
+   * この階層で色トークンそのものを差し替える。
+   * Tailwind v4 のユーティリティは var(--color-*) を参照して出力されるため、
+   * 祖先で変数を上書きすれば text-ink / border-rule などが自動で反転する。
+   * 個々のセクションに明転用クラスを足して回ると、
+   * 増改築のたびに塗り忘れが出るため採らない。
+   *
+   * 3Dはこの区間で見えなくなる。加算合成は明るい地の上では白線が出ないため、
+   * 「暗闇=空間と発見 / 光=情報と行動」と役割を分ける。
+   */
+  [data-tone="light"] {
+    --color-void: var(--color-mono-200);
+    --color-base: var(--color-mono-200);
+    --color-raised: var(--color-mono-100);
+    --color-ink: var(--color-mono-900);
+    --color-ink-strong: var(--color-mono-900);
+    --color-ink-soft: var(--color-mono-700);
+    --color-ink-faint: var(--color-mono-700);
+    --color-rule: var(--color-mono-300);
+    --color-rule-strong: var(--color-mono-300);
+    color: var(--color-ink);
+  }
+
+  /*
+   * 地を敷くのはセクションだけ。
+   * ヘッダーも同じトークン差し替えで反転させるが、position/背景まで
+   * ここで指定すると fixed が壊れるため、レイアウトはセクションに限定する。
+   */
+  section[data-tone="light"] {
+    position: relative;
+    z-index: 1;
+    background: var(--color-void);
+  }
+
+  /* 地の明度は章ごとに変える(F2 → FF → CF)。文字は常に #090909 / #2F2F2F */
+  [data-tone="light"][data-tone-surface="raised"] {
+    --color-void: var(--color-mono-100);
+    --color-base: var(--color-mono-100);
+  }
+  [data-tone="light"][data-tone-surface="sunken"] {
+    --color-void: var(--color-mono-300);
+    --color-base: var(--color-mono-300);
+    /* 沈んだ地の上では罫線を白側に置く。CFの上にCFでは線が消えるため */
+    --color-rule: var(--color-mono-100);
+    --color-rule-strong: var(--color-mono-100);
+  }
+
+  /*
+   * 明転区間では素材の合成方法も反転させる。
+   * .art-blend は lighten(黒を透過)で暗い地を前提にしているため、
+   * 明るい地の上では黒い矩形が残ってしまう。
+   *
+   * ロゴは「黒地にロゴが穴として抜かれたSVG + 背後の白」= 白ロゴ/黒地 の合成。
+   * invert で 黒ロゴ/白地 に反転させてから darken で白を透過させると、
+   * 素材を作り直さずに明転側でも正しく出る。
+   */
+  [data-tone="light"] .art-blend {
+    filter: invert(1);
+    mix-blend-mode: darken;
+  }
+
   /* セクションの縦リズム */
   .section-y {
     padding-block: clamp(6rem, 14vh, 12rem);

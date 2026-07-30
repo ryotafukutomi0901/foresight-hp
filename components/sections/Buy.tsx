@@ -107,6 +107,8 @@ export default function Buy() {
       ref={scope}
       id="buy"
       aria-labelledby="buy-heading"
+      // 明転の起点。地は #F2F2F2（Color System の LIGHT 既定面）
+      data-tone="light"
       className="section-y relative"
     >
       <div className="container-x">

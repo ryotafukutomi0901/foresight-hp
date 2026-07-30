@@ -94,6 +94,9 @@ export default function Auction() {
       ref={scope}
       id="find"
       aria-labelledby="find-heading"
+      // 明転の終わり。地を #CFCFCF まで沈め、次のCTA(#090909)へ向かって暗転していく
+      data-tone="light"
+      data-tone-surface="sunken"
       className="section-y relative overflow-hidden"
     >
       <div className="container-x">

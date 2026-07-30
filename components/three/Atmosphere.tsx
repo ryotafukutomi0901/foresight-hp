@@ -329,12 +329,16 @@ function Cinematic() {
 export default function Atmosphere({
   fogCount = 26,
   dustCount = 700,
+  active = true,
 }: {
   fogCount?: number;
   dustCount?: number;
+  /** 明転区間で完全に覆われている間は false。描画を止める（見た目は変わらない）。 */
+  active?: boolean;
 }) {
   return (
     <Canvas
+      frameloop={active ? "always" : "never"}
       gl={{
         antialias: false,
         powerPreference: "high-performance",

@@ -77,6 +77,9 @@ export default function Sell() {
       ref={scope}
       id="sell"
       aria-labelledby="sell-heading"
+      // 明転の頂点。地を #FFFFFF まで持ち上げる
+      data-tone="light"
+      data-tone-surface="raised"
       className="section-y relative"
     >
       <div className="container-x">
