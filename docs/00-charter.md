@@ -202,6 +202,7 @@ H-03 を変更 →  H-02 / H-03 / H-04 を通し確認
 | [shot-list.md](./shot-list.md) | Shot単位の撮影台本 |
 | [asset-production-guide.md](./asset-production-guide.md) | 制作指示書 + 生成プロンプト |
 | `baseline/` | Vision の変更禁止を保証する基準画像（Phase 4 前に取得） |
+| [research-genspark-loading-report.md](./research-genspark-loading-report.md) | **[参考資料]** 外部リサーチレポート全文。決定の出典ではなく入力。数値・仕様の唯一の出典は各Bible |
 
 ## 素材の前提（CEO指示・2026-07-28）
 
