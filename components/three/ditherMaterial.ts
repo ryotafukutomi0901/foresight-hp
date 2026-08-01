@@ -43,6 +43,14 @@ uniform sampler2D uMap;
 uniform float uOpacity;
 uniform float uPixelSize;   // 粒の大きさ（カメラ距離に連動）
 uniform vec2  uResolution;  // 平面のピクセル解像度
+/*
+ * UVの切り出し。スプライトシートから1コマだけを描くために使う。
+ * three.js の texture.repeat/offset はビルトインマテリアル専用で、
+ * 自前のフラグメントシェーダーには適用されない（実測で9コマ全部が出た）。
+ * 同じ役割を明示的に持たせる。既定は等倍・原点で、単一画像なら影響しない。
+ */
+uniform vec2  uUvScale;
+uniform vec2  uUvOffset;
 uniform float uMatrixSize;
 uniform float uDarkCutoff;
 uniform float uLightCutoff;
@@ -71,7 +79,10 @@ void main() {
   vec2 pixels = uResolution / max(uPixelSize, 1.0);
   vec2 quantUv = floor(vUv * pixels) / pixels;
 
-  vec3 texel = texture2D(uMap, quantUv).rgb;
+  // 量子化した後にコマの矩形へ写す。順序を逆にすると粒がコマ間でズレる
+  vec2 sheetUv = uUvOffset + quantUv * uUvScale;
+
+  vec3 texel = texture2D(uMap, sheetUv).rgb;
   float brightness = luma(texel);
 
   /*
@@ -111,6 +122,16 @@ void main() {
   float v = mix(base, dithered, uStrength);
 
   /*
+   * 暗部を確実に落とす。
+   * dithered は step() の出力なので 0 か 1 しか返さない。
+   * 背景が純黒でも threshold が 0 のセルでは step(0.0, 0.0) = 1.0 となり、
+   * uStrength の割合だけ白が出る。これが板の矩形が薄い箱として
+   * 見える原因だった（素材の黒は実測で luma 0.0 と確認済み）。
+   * 原画が暗いところでは合成結果ごと0へ落とす。
+   */
+  v *= smoothstep(uDarkCutoff, uDarkCutoff + 0.02, brightness);
+
+  /*
    * 5. 加算合成のため、黒はそのまま黒（=透過）にする。
    *    alpha ではなく色の明度で透過を作るのが加算合成の流儀。
    */
@@ -123,8 +144,19 @@ void main() {
   float edgeDist = max(abs(fromCenter.x), abs(fromCenter.y));
   float edge = 1.0 - smoothstep(uEdgeFeather, 0.5, edgeDist);
 
-  vec3 color = vec3(v) * uOpacity * edge;
-  gl_FragColor = vec4(color, 1.0);
+  float a = v * uOpacity * edge;
+  /*
+   * alpha を明度に連動させる。
+   * 加算合成だけを見れば alpha=1.0 でも結果は同じだが、
+   * EffectComposer は中間バッファに alpha ごと書き込むため、
+   * 1.0 のままだと板の矩形が「不透明な面」として残り、
+   * ポストプロセス後に薄い箱として見える（実測）。
+   *
+   * 色は alpha で割らない値を保つ。両方に a を掛けると
+   * 二重に暗くなり、線が沈んで読めなくなる。
+   */
+  vec3 color = vec3(v) * uOpacity;
+  gl_FragColor = vec4(color, a);
 }
 `;
 
@@ -138,6 +170,8 @@ export type DitherUniforms = {
   uLightCutoff: { value: number };
   uStrength: { value: number };
   uEdgeFeather: { value: number };
+  uUvScale: { value: THREE.Vector2 };
+  uUvOffset: { value: THREE.Vector2 };
 };
 
 /**
@@ -165,6 +199,9 @@ export function createDitherMaterial(texture: THREE.Texture) {
     uLightCutoff: { value: dither.lightCutoff },
     uStrength: { value: dither.strength },
     uEdgeFeather: { value: dither.edgeFeather },
+    /* 既定は画像1枚をそのまま使う。スプライトシートの場合だけ上書きする */
+    uUvScale: { value: new THREE.Vector2(1, 1) },
+    uUvOffset: { value: new THREE.Vector2(0, 0) },
   };
 
   const material = new THREE.ShaderMaterial({
@@ -175,6 +212,13 @@ export function createDitherMaterial(texture: THREE.Texture) {
     depthWrite: false,
     blending: THREE.AdditiveBlending,
     toneMapped: false,
+    /*
+     * シーンのフォグを適用しない。
+     * ShaderMaterial は fog を自動では受けないが、既定の false を
+     * 明示しておく。加算合成では黒=透明なので、フォグで持ち上がると
+     * 板の矩形がそのまま薄い箱として見えてしまう。
+     */
+    fog: false,
   });
 
   return { material, uniforms };

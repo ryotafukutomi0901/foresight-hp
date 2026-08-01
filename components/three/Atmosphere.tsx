@@ -14,6 +14,7 @@ import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
 import { camera as CAM, dof as DOF } from "@/lib/tokens";
 import NarrativeCorridor from "./NarrativeCorridor";
+import VehicleReveal from "./VehicleReveal";
 
 /*
  * ページ全体に常駐する3D空間。
@@ -296,6 +297,18 @@ function Rig({ children }: { children: React.ReactNode }) {
  * ---------------------------------------------------------------- */
 
 function Cinematic() {
+  /*
+   * multisampling は 0（無効）。
+   *
+   * 画質のために 4 → 2 と試したが、全画面バッファをサンプル数分だけ
+   * 走査するため fps への影響が大きく、desktop が
+   *   0 → 58fps / 2 → 47fps / 4 → 18fps
+   * と予算(55)を割った（実測）。
+   *
+   * この画面のエッジは車両の線画だけで、その線は素材側で既に
+   * アンチエイリアスが掛かっている。MSAAで得られる改善に対し
+   * 支払うコストが見合わない。
+   */
   return (
     <EffectComposer multisampling={0}>
       {/* 線画の白を淡く発光させ、黒の中で"光っている"ように見せる */}
@@ -308,6 +321,12 @@ function Cinematic() {
       />
       {/* 奥ほどピントが外れる。平面の集合が"空間"に見える最大の要因 */}
       {/* ぼかしは低解像度でも結果がほぼ変わらない。最も高コストなので半解像度で処理する */}
+      {/*
+        ぼかしの解像度。等倍にすると車両の線は僅かに締まるが、
+        DOFはポストプロセス中で最も高コストで fps を大きく削る（実測）。
+        車両への合焦は focusDistance の修正で達成できたため、
+        解像度は半分に戻す。
+      */}
       <DepthOfField
         focusDistance={DOF.focusDistance}
         focalLength={DOF.focalLength}
@@ -340,6 +359,13 @@ export default function Atmosphere({
     <Canvas
       frameloop={active ? "always" : "never"}
       gl={{
+        /*
+         * false のままにする。
+         * EffectComposer を通す構成では最終出力は composer の
+         * 中間バッファ経由になるため、Canvas 側の MSAA はほぼ効かず
+         * コストだけが乗る。アンチエイリアスは composer 側の
+         * multisampling で効かせる。
+         */
         antialias: false,
         powerPreference: "high-performance",
         toneMapping: THREE.ACESFilmicToneMapping,
@@ -367,6 +393,13 @@ export default function Atmosphere({
         */}
         <Suspense fallback={null}>
           <NarrativeCorridor />
+        </Suspense>
+        {/*
+          ローディングからHeroまでを繋ぐ車両。回廊と同じCanvasに同居させる。
+          別Canvasにするとコンテキストが2つになり、GPUメモリを二重に食う。
+        */}
+        <Suspense fallback={null}>
+          <VehicleReveal />
         </Suspense>
       </Rig>
       <Cinematic />

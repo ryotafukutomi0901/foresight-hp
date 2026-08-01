@@ -2,44 +2,41 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import CloudLayers from "./CloudLayers";
-import { Flip, gsap, useGSAP } from "@/hooks/useGsap";
+import { gsap, useGSAP } from "@/hooks/useGsap";
 import { registerBrandEases } from "@/lib/motion";
 import {
   markOpeningDone,
   markOpeningSeen,
   shouldPlayOpening,
 } from "@/lib/sequence";
+import { openingStage, settleOpeningStage } from "@/lib/openingStage";
+import { BRAND } from "@/lib/content";
 
 /*
- * OPENING — 約6.8秒
+ * OPENING v3 — ローディングからHeroまでの一気通貫
  *
- *  0.0–0.9  ロゴが霧の奥から結像する
- *  0.9–1.5  目が一度だけ瞬く
- *  1.5–3.6  目の中へ入っていく            ← この演出の核
- *  3.6–4.6  瞳の闇を抜けて雲へ
- *  4.6–5.5  雲が晴れる
- *  5.5–6.8  ロゴがヘッダーの定位置へ収まる(GSAP Flip) ← ページとの継ぎ目
+ * 「幕を降ろして、上げたらHeroだった」ではなく、
+ * ローディングで結像した車両が、そのままHeroの背景として残り続ける。
+ * 幕が落ちるのではなく、幕そのものがHeroになる。
  *
- * 「引いて全体を見せる」のではなく「入っていく」。
- * Foresight=見通す、という名前に対して、視点が対象の内側へ入る動きの方が正しい。
- * この"入る"運動はページ本体のスクロール(カメラ前進)にそのまま引き継がれる。
+ *  0.0–0.6  闇。粒だけがわずかに息づく
+ *  0.6–2.0  正面カットが闇から結像（ディザの粒度 粗→細）
+ *  2.0–3.6  アングルが巡る。正面→斜め前→真横→背面→斜め前へ戻る
+ *  3.6–4.4  斜め前で静止し、カメラが引いてHeroの定位置へ収まる
+ *  4.4–5.2  ロゴがヘッダーへ着地。テキスト幕だけが消え、
+ *           車両は画面に残ったままHeroへ引き継がれる
  *
- * 全体を1本のマスターTimelineで管理する。setTimeoutによる時間管理はしない
- * (スキップ・シーク・速度変更ができなくなり、cleanupも保証できないため)。
+ * 車両の描画は R3F 側(components/three/VehicleReveal.tsx)が担当する。
+ * ここは lib/openingStage.ts の値をGSAPで動かすだけで、
+ * 描画そのものには関与しない。DOMと3Dの責務を分けている。
+ *
+ * ⚠️ 3Dは prefers-reduced-motion で起動しない(AtmosphereMount)。
+ *    その場合ここも演出を行わず、即座に完了扱いにする。
  */
 
-/*
- * 総尺。L-08(Flipでヘッダーへ)を末尾に足したぶん、当初の6.0秒から伸びている。
- * ただしFlipはHeroの入場と重なって進むため、体感の待ち時間は変わらない。
- */
-const TOTAL = 6.8;
-
-/* ロゴ画像内での目の位置(実測)。ここがカメラの進入点になる。 */
-const EYE = { x: 53.5, y: 47.5 };
+const TOTAL = 5.2;
 
 export default function OpeningSequence() {
-  // SSR時は必ず描画し、クライアントのlayout effectで即座に判定する
   const [mounted, setMounted] = useState(true);
   const root = useRef<HTMLDivElement>(null);
 
@@ -51,8 +48,9 @@ export default function OpeningSequence() {
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      // 2回目以降の訪問、または「視差効果を減らす」設定時は演出を行わない
       if (reduced || !shouldPlayOpening()) {
+        // 車両は最終状態(Heroの定位置)で静止させ、幕は出さない
+        settleOpeningStage();
         markOpeningSeen();
         markOpeningDone();
         setMounted(false);
@@ -70,227 +68,159 @@ export default function OpeningSequence() {
         setMounted(false);
       };
 
-      const tl = gsap.timeline({ onComplete: finish });
+      const curtain = root.current;
+      const brand = root.current?.querySelector("[data-opening-brand]");
+      const tagline = root.current?.querySelector("[data-opening-tagline]");
+      const logoWrap = root.current?.querySelector("[data-opening-logo]");
+      if (!curtain || !brand || !tagline || !logoWrap) return;
 
       /* ---- 初期状態 ---- */
-      /*
-       * 拡大の原点は「ロゴ画像の中の目」。
-       * 舞台(全画面)に対する%で指定すると、中央寄せされたロゴの目の実際の位置と
-       * ずれてしまい、目に入っていかず横へ流れる(実測で確認)。
-       * ロゴ要素自身をロゴ座標系の%で拡大すれば幾何学的に正確になる。
-       */
-      gsap.set("[data-logo]", {
-        autoAlpha: 0,
-        scale: 1.08,
-        filter: "blur(24px)",
-        transformOrigin: `${EYE.x}% ${EYE.y}%`,
+      Object.assign(openingStage, {
+        reveal: 0,
+        focus: 0,
+        spin: 0,
+        dolly: 0,
       });
+      gsap.set(brand, { autoAlpha: 0, y: 10 });
+      gsap.set(tagline, { autoAlpha: 0, y: 8 });
+      gsap.set(logoWrap, { autoAlpha: 0, scale: 0.94 });
 
-      // 速度線・瞳・周辺減光の中心を、画面上での目の実座標に合わせる
-      const logoEl = root.current?.querySelector<HTMLElement>("[data-logo]");
-      if (logoEl && root.current) {
-        const r = logoEl.getBoundingClientRect();
-        const cx = ((r.left + (r.width * EYE.x) / 100) / window.innerWidth) * 100;
-        const cy = ((r.top + (r.height * EYE.y) / 100) / window.innerHeight) * 100;
-        root.current.style.setProperty("--eye-x", `${cx}%`);
-        root.current.style.setProperty("--eye-y", `${cy}%`);
-      }
-      gsap.set("[data-lid]", {
-        scaleY: 0,
-        rotation: -12,
-        transformOrigin: "50% 0%",
-      });
-      gsap.set("[data-streak]", { autoAlpha: 0, scale: 0.6 });
-      gsap.set("[data-pupil]", { autoAlpha: 0, scale: 0.2 });
-      gsap.set("[data-blackout]", { autoAlpha: 0 });
-      gsap.set("[data-vignette]", { autoAlpha: 1 });
+      const tl = gsap.timeline({ onComplete: finish });
 
-      /* ---- 0.0–0.9 ロゴが結像する ---- */
-      tl.addLabel("logo", 0).to(
-        "[data-logo]",
-        {
-          autoAlpha: 1,
-          scale: 1,
-          filter: "blur(0px)",
-          duration: 0.9,
-          ease: "brandOut",
-        },
-        "logo",
-      );
+      /* ---- 0.0–0.6 闇 ----
+         何も起きない時間を意図的に置く。ここで呼吸が整う。 */
+      tl.addLabel("silence", 0);
 
-      /* ---- 0.9–1.5 瞬き ----
-         人間の瞬目は「閉じが速く、開きが遅い」。同じeaseで往復させない。 */
-      tl.addLabel("blink", 0.95)
-        .to("[data-lid]", { scaleY: 1, duration: 0.09, ease: "power3.in" }, "blink")
+      /* ---- 0.6–2.0 結像 ----
+         粒が集まって車が像を結ぶ。reveal(不透明度)より
+         focus(粒の収束)をわずかに遅らせると、
+         「輪郭が先に出て、後からディテールが定まる」順序になる。 */
+      tl.addLabel("form", 0.6)
         .to(
-          "[data-lid]",
-          { scaleY: 0, duration: 0.16, ease: "power2.out" },
-          "blink+=0.14",
+          openingStage,
+          { reveal: 1, duration: 1.1, ease: "brandOut" },
+          "form",
+        )
+        .to(
+          openingStage,
+          { focus: 1, duration: 1.6, ease: "power2.out" },
+          "form+=0.2",
+        )
+        // ブランド名は車の結像に少し遅れて出す
+        .to(
+          brand,
+          { autoAlpha: 1, y: 0, duration: 0.9, ease: "brandOut" },
+          "form+=0.5",
         );
 
-      /* ---- 1.5–3.6 目の中へ入る ----
-         ロゴ内の目を原点に据えて指数的に拡大する。
-         easeは brandDive(最後まで加速し続ける)。減速させると"止まって見え"、
-         入っていく感覚が消えるため、ここだけは他と違うカーブを使う。 */
-      tl.addLabel("dive", 1.5)
+      /* ---- 2.0–3.6 アングルが巡る ----
+         等間隔でない素材なので、linearだと切り替えの粗さが目立つ。
+         inOutで入りと終わりを丸め、「巡って落ち着く」運動にする。 */
+      tl.addLabel("orbit", 2.0)
         .to(
-          "[data-logo]",
-          { scale: 42, duration: 2.1, ease: "brandDive" },
-          "dive",
-        )
-        // 速度線。中心から放射状に流れて速さを可視化する
-        .to(
-          "[data-streak]",
-          { autoAlpha: 0.55, scale: 3.4, duration: 1.5, ease: "power2.in" },
-          "dive+=0.25",
-        )
-        // 拡大でロゴの粗が出る前に、瞳の闇へ意識を移す
-        .to(
-          "[data-logo]",
-          { filter: "blur(14px)", duration: 1.2, ease: "power2.in" },
-          "dive+=0.7",
-        )
-        // 瞳(暗部)が画面を飲み込む
-        .to(
-          "[data-pupil]",
-          { autoAlpha: 1, scale: 9, duration: 1.4, ease: "power2.in" },
-          "dive+=0.6",
+          openingStage,
+          { spin: 1, duration: 1.6, ease: "brandInOut" },
+          "orbit",
         )
         .to(
-          "[data-vignette]",
-          { autoAlpha: 0, duration: 0.8, ease: "power1.out" },
-          "dive+=0.2",
+          tagline,
+          { autoAlpha: 1, y: 0, duration: 0.8, ease: "brandOut" },
+          "orbit+=0.3",
         );
 
-      /* ---- 3.6–4.6 瞳の闇を抜けて雲へ ---- */
-      tl.addLabel("through", 3.55)
+      /* ---- 3.6–4.4 Heroの定位置へ引く ----
+         ここで車両はHeroの背景としての位置・大きさに収まる。
+         この後もう動かない。 */
+      tl.addLabel("settle", 3.6)
         .to(
-          "[data-blackout]",
-          { autoAlpha: 1, duration: 0.35, ease: "power2.in" },
-          "through",
+          openingStage,
+          { dolly: 1, duration: 1.5, ease: "brandOut" },
+          "settle",
         )
-        .set(["[data-logo]", "[data-streak]", "[data-pupil]"], { autoAlpha: 0 })
-        .set("[data-logo]", { scale: 1 })
-        // 雲の谷を手前へ通過する
-        .fromTo(
-          "[data-cloud-corridor]",
-          { autoAlpha: 0, scale: 2.4, yPercent: -14 },
+        // 文字は退場。車両だけが残る
+        .to(
+          [brand, tagline],
           {
-            autoAlpha: 0.95,
-            scale: 1,
-            yPercent: 10,
-            duration: 1.5,
-            ease: "power1.out",
+            autoAlpha: 0,
+            y: -12,
+            duration: 0.5,
+            ease: "power2.in",
+            stagger: 0.06,
           },
-          "through+=0.3",
+          "settle+=0.1",
         )
+        // ロゴが中央に結像してからヘッダーへ向かう
         .to(
-          "[data-blackout]",
-          { autoAlpha: 0, duration: 0.7, ease: "power1.out" },
-          "through+=0.35",
+          logoWrap,
+          { autoAlpha: 1, scale: 1, duration: 0.45, ease: "brandOut" },
+          "settle+=0.35",
         );
 
-      /* ---- 4.6–6.0 雲が晴れHeroへ ---- */
-      tl.addLabel("clear", 4.6)
-        .fromTo(
-          "[data-cloud-in='left']",
-          { autoAlpha: 0, xPercent: -12, scale: 1.2 },
-          {
-            autoAlpha: 1,
-            xPercent: 0,
-            scale: 1,
-            duration: 0.7,
-            ease: "brandInOut",
-          },
-          "clear",
-        )
-        .fromTo(
-          "[data-cloud-in='right']",
-          { autoAlpha: 0, xPercent: 12, scale: 1.2 },
-          {
-            autoAlpha: 1,
-            xPercent: 0,
-            scale: 1,
-            duration: 0.7,
-            ease: "brandInOut",
-          },
-          "clear",
-        )
-        .to(
-          "[data-cloud-whiteout]",
-          { autoAlpha: 0.9, duration: 0.5, ease: "power2.in" },
-          "clear+=0.2",
-        )
-        // 雲が晴れる合図。Heroの入場はここから始まる(幕の下で終わらせない)
-        .add(() => markOpeningDone(), "clear+=0.5");
-
-      /* ---- L-08 Flip でヘッダーへ ----
-         雲が晴れたあと、ロゴが中央に戻り、そのままヘッダーの定位置へ収まる。
-         これが「Loadingは別物ではなくページの一部だった」と理解させる継ぎ目。
-
-         Flip.fit は fromEl を toEl の矩形にぴったり重ねる。
-         ヘッダーは markOpeningDone まで autoAlpha 0 だが、
-         visibility:hidden はレイアウトを保持するため矩形は正しく測れる。 */
-      tl.set("[data-logo]", { scale: 1, filter: "blur(0px)" }, "clear+=0.55")
-        .to(
-          "[data-logo]",
-          { autoAlpha: 1, duration: 0.35, ease: "brandOut" },
-          "clear+=0.55",
-        )
+      /* ---- 4.4–5.2 ロゴ着地 + 幕の解除 ----
+         幕は元から透明で、持っているのは文字とロゴだけ。
+         ロゴがヘッダーへ着いたら幕を畳む。車両は3D側に残るため、
+         ここで画面から消えるものは何も無い。 */
+      tl.addLabel("handoff", 4.4)
         .add(() => {
-          const from = root.current?.querySelector<HTMLElement>("[data-logo]");
+          const from = root.current?.querySelector<HTMLElement>(
+            "[data-opening-logo]",
+          );
           const to = document.querySelector<HTMLElement>("[data-header-logo]");
           if (!from || !to) return;
-          Flip.fit(from, to, {
-            duration: 1.0,
+
+          const fromRect = from.getBoundingClientRect();
+          const toRect = to.getBoundingClientRect();
+          const dx =
+            toRect.left + toRect.width / 2 - (fromRect.left + fromRect.width / 2);
+          const dy =
+            toRect.top + toRect.height / 2 - (fromRect.top + fromRect.height / 2);
+
+          gsap.to(from, {
+            x: dx,
+            y: dy,
+            scale: toRect.width / fromRect.width,
+            duration: 0.6,
             ease: "brandOut",
-            scale: true,
-            absolute: true,
           });
-        }, "clear+=0.95")
-        /*
-         * 幕と雲を抜き、ロゴだけを残す。
-         * 幕(root の背景色)も同時に透明にしないと、ロゴが「黒画面の上」を
-         * 飛ぶことになり、Heroへ着地している感覚が出ない(実測で確認)。
-         * 透明にすることで、実際のHeroの上をロゴが横切って定位置に収まる。
-         */
+        }, "handoff")
+        // Heroのテキスト入場と重ねる
+        .add(() => markOpeningDone(), "handoff+=0.2")
         .to(
-          [
-            "[data-vignette]",
-            "[data-blackout]",
-            "[data-cloud-corridor]",
-            "[data-cloud-in='left']",
-            "[data-cloud-in='right']",
-            "[data-cloud-whiteout]",
-          ],
-          { autoAlpha: 0, duration: 0.5, ease: "power2.inOut" },
-          "clear+=0.95",
-        )
-        .to(
-          root.current,
-          { backgroundColor: "rgba(9,9,9,0)", duration: 0.5, ease: "power2.inOut" },
-          "clear+=0.95",
-        )
-        .to(
-          root.current,
+          curtain,
           { autoAlpha: 0, duration: 0.3, ease: "power1.out" },
-          "clear+=1.75",
+          "handoff+=0.45",
         );
 
       tl.totalDuration(TOTAL);
 
-      // 開発時のみ、各ビートを任意の時刻へシークして確認できるようにする
       if (process.env.NODE_ENV !== "production") {
         (window as unknown as { __openingTl?: gsap.core.Timeline }).__openingTl =
           tl;
       }
 
-      /* ---- スキップ ---- */
+      /* ---- ポインタ追従（車両の微細な視差） ---- */
+      const onPointer = (e: PointerEvent) => {
+        openingStage.pointerX = (e.clientX / window.innerWidth) * 2 - 1;
+        openingStage.pointerY = (e.clientY / window.innerHeight) * 2 - 1;
+      };
+      window.addEventListener("pointermove", onPointer, { passive: true });
+
+      /* ---- スキップ ----
+         車両は最終状態へ送る。スキップしても
+         「Heroに車が居る」状態は保たれなければならない。 */
       const skip = () => {
         tl.pause();
-        gsap.to(root.current, {
+        gsap.to(openingStage, {
+          reveal: 1,
+          focus: 1,
+          spin: 1,
+          dolly: 1,
+          duration: 0.4,
+          ease: "power2.out",
+        });
+        gsap.to(curtain, {
           autoAlpha: 0,
-          duration: 0.3,
+          duration: 0.35,
           ease: "power2.inOut",
           onComplete: () => {
             tl.kill();
@@ -307,6 +237,7 @@ export default function OpeningSequence() {
       btn?.addEventListener("click", skip);
 
       return () => {
+        window.removeEventListener("pointermove", onPointer);
         document.removeEventListener("keydown", onKey);
         btn?.removeEventListener("click", skip);
         document.body.style.overflow = prevOverflow;
@@ -315,7 +246,6 @@ export default function OpeningSequence() {
     { scope: root },
   );
 
-  // 完了後はDOMから外す。合成レイヤーを残さない。
   if (!mounted) return null;
 
   return (
@@ -323,79 +253,69 @@ export default function OpeningSequence() {
       ref={root}
       data-opening
       className="fixed inset-0 z-[100] overflow-hidden"
-      style={{ backgroundColor: "var(--color-void)" }}
+      /*
+       * 地は透明。車両は背後の3D空間が描いており、
+       * 不透明な幕を敷くと隠れてしまう(実測で確認)。
+       * 暗さは3D側のフォグとビネットが既に作っているため、
+       * ここで黒を重ねる必要はない。
+       */
+      style={{ backgroundColor: "transparent" }}
     >
-      <div aria-hidden className="absolute inset-0">
-        {/* 舞台。目を原点に、ここごと拡大して「中へ入る」 */}
-        <div data-stage className="absolute inset-0">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div
-              data-logo
-              className="art-blend relative w-[min(74vw,600px)] bg-white"
-              style={{ aspectRatio: "1536 / 1085", willChange: "transform, filter" }}
-            >
-              <Image
-                src="/logo2.svg"
-                alt=""
-                fill
-                sizes="(max-width: 768px) 74vw, 600px"
-                priority
-                className="object-contain"
-              />
-              {/*
-                瞼。ロゴの目は「白い眼球＋黒い虹彩」が白い顔面に埋まった構造のため、
-                瞼は顔と同じ白で虹彩を覆うと閉じて見える(黒を被せると顔に穴が空く)。
-              */}
-              <span
-                data-lid
-                className="absolute rounded-full bg-ink"
-                style={{ left: "46%", width: "15%", top: "41%", height: "13%" }}
-              />
-            </div>
-          </div>
+      {/*
+        幕はテキストとロゴだけを持つ。車両は背後の3D空間が描いている。
+        幕の地を透明にすれば、そのまま車両が見える構造にしてある。
+      */}
+      <div
+        aria-hidden
+        className="absolute inset-0 flex flex-col items-center justify-center"
+      >
+        <p
+          data-opening-brand
+          className="text-ink-strong"
+          style={{
+            fontFamily: "var(--font-latin)",
+            fontSize: "clamp(1.75rem, 5vw, 3.5rem)",
+            fontWeight: 600,
+            letterSpacing: "0.32em",
+            textIndent: "0.32em",
+            willChange: "opacity, transform",
+          }}
+        >
+          {BRAND.name.toUpperCase()}
+        </p>
 
-          {/* 瞳の闇。進入先。目の位置に置く */}
-          <div
-            data-pupil
-            className="absolute h-[14vmin] w-[14vmin] rounded-full"
-            style={{
-              left: "var(--eye-x, 50%)",
-              top: "var(--eye-y, 50%)",
-              transform: "translate(-50%, -50%)",
-              background:
-                "radial-gradient(circle, #000 38%, rgba(0,0,0,0.85) 62%, transparent 100%)",
-            }}
+        <p
+          data-opening-tagline
+          className="mt-6 text-ink-soft"
+          style={{
+            fontFamily: "var(--font-jp)",
+            fontSize: "clamp(0.8125rem, 1.5vw, 1.0625rem)",
+            letterSpacing: "0.2em",
+            willChange: "opacity, transform",
+          }}
+        >
+          {BRAND.core}
+        </p>
+
+        {/* ロゴマーク: 最後にヘッダーへ着地する */}
+        <div
+          data-opening-logo
+          className="art-blend absolute bg-white"
+          style={{
+            width: "min(40vw, 220px)",
+            aspectRatio: "1536 / 1085",
+            willChange: "transform, opacity",
+          }}
+        >
+          <Image
+            src="/logo2.svg"
+            alt=""
+            fill
+            sizes="(max-width: 768px) 40vw, 220px"
+            priority
+            className="object-contain"
           />
         </div>
-
-        {/* 速度線。目に向かって吸い込まれる流れ */}
-        <div
-          data-streak
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "repeating-conic-gradient(from 0deg at var(--eye-x,50%) var(--eye-y,50%), rgba(255,255,255,0.09) 0deg 1.1deg, transparent 1.1deg 5deg)",
-            maskImage:
-              "radial-gradient(circle at var(--eye-x,50%) var(--eye-y,50%), transparent 5%, #000 30%, transparent 78%)",
-            WebkitMaskImage:
-              "radial-gradient(circle at var(--eye-x,50%) var(--eye-y,50%), transparent 5%, #000 30%, transparent 78%)",
-          }}
-        />
-
-        <CloudLayers />
-
-        {/* 覗いている状態を作る周辺減光。引き込みに合わせて消える */}
-        <div
-          data-vignette
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at var(--eye-x,50%) var(--eye-y,50%), transparent 20%, rgba(0,0,0,0.82) 60%, #000 90%)",
-          }}
-        />
-
-        {/* 瞳の内側の闇 */}
-        <div data-blackout className="absolute inset-0 bg-void" />
       </div>
 
       <button
