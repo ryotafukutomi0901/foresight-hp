@@ -1,0 +1,1818 @@
+{
+  "desktop": {
+    "viewport": {
+      "w": 1440,
+      "h": 900
+    },
+    "docHeight": 9003,
+    "body": {
+      "background": "rgb(10, 8, 1)",
+      "color": "rgb(217, 215, 212)",
+      "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+      "fontSize": "16px",
+      "lineHeight": "normal"
+    },
+    "scrollBehavior": "auto",
+    "commonWidths": [
+      {
+        "width": 1440,
+        "count": 40
+      },
+      {
+        "width": 1296,
+        "count": 19
+      },
+      {
+        "width": 324,
+        "count": 9
+      },
+      {
+        "width": 468,
+        "count": 4
+      },
+      {
+        "width": 648,
+        "count": 3
+      },
+      {
+        "width": 968,
+        "count": 3
+      },
+      {
+        "width": 216,
+        "count": 2
+      },
+      {
+        "width": 252,
+        "count": 2
+      }
+    ],
+    "sticky": [
+      {
+        "tag": "div",
+        "cls": "loader",
+        "position": "fixed",
+        "zIndex": "90",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 900
+        }
+      },
+      {
+        "tag": "header",
+        "cls": "header",
+        "position": "fixed",
+        "zIndex": "80",
+        "box": {
+          "x": -36,
+          "y": -22,
+          "w": 1512,
+          "h": 945
+        }
+      },
+      {
+        "tag": "span",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": -36,
+          "y": -22,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "nav",
+        "cls": "nav",
+        "position": "fixed",
+        "zIndex": "50",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 900
+        }
+      },
+      {
+        "tag": "h2",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label homePhilosophy_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 72,
+          "y": 2430,
+          "w": 18,
+          "h": 110
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "h2",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label homeProjects_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 72,
+          "y": 3283,
+          "w": 18,
+          "h": 81
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 4723,
+          "w": 1440,
+          "h": 675
+        }
+      },
+      {
+        "tag": "p",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label stickySection_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 72,
+          "y": 4813,
+          "w": 18,
+          "h": 81
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 5398,
+          "w": 1440,
+          "h": 677
+        }
+      }
+    ],
+    "sections": [
+      {
+        "tag": "header",
+        "cls": "header",
+        "box": {
+          "x": -36,
+          "y": -22,
+          "w": 1512,
+          "h": 945
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": null
+      },
+      {
+        "tag": "div",
+        "cls": "home",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 8191
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "Remember who you are"
+      },
+      {
+        "tag": "section",
+        "cls": "homePhilosophy",
+        "box": {
+          "x": 0,
+          "y": 1440,
+          "w": 1440,
+          "h": 1816
+        },
+        "paddingTop": "990px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "Philosophy"
+      },
+      {
+        "tag": "section",
+        "cls": "homeProjects",
+        "box": {
+          "x": 0,
+          "y": 3256,
+          "w": 1440,
+          "h": 3496
+        },
+        "paddingTop": "27px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "projects"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 4723,
+          "w": 1440,
+          "h": 675
+        },
+        "paddingTop": "90px",
+        "paddingBottom": "90px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "01 School"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 5398,
+          "w": 1440,
+          "h": 677
+        },
+        "paddingTop": "90px",
+        "paddingBottom": "90px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "02 Craft"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 6075,
+          "w": 1440,
+          "h": 677
+        },
+        "paddingTop": "90px",
+        "paddingBottom": "90px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "03 Retreat"
+      },
+      {
+        "tag": "section",
+        "cls": "homeCompany",
+        "box": {
+          "x": 0,
+          "y": 6751,
+          "w": 1440,
+          "h": 1440
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "company"
+      },
+      {
+        "tag": "footer",
+        "cls": "footer",
+        "box": {
+          "x": 0,
+          "y": 8191,
+          "w": 1440,
+          "h": 811
+        },
+        "paddingTop": "27px",
+        "paddingBottom": "33.3px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": null
+      }
+    ],
+    "headings": [
+      {
+        "level": "h1",
+        "text": "Remember who you are",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(255, 255, 255)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 252,
+          "y": 441,
+          "w": 936,
+          "h": 19
+        }
+      },
+      {
+        "level": "h2",
+        "text": "Philosophy",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "18px",
+          "fontWeight": "400",
+          "lineHeight": "18px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 72,
+          "y": 2430,
+          "w": 18,
+          "h": 110
+        }
+      },
+      {
+        "level": "h2",
+        "text": "projects",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "18px",
+          "fontWeight": "400",
+          "lineHeight": "18px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 72,
+          "y": 3283,
+          "w": 18,
+          "h": 81
+        }
+      },
+      {
+        "level": "h3",
+        "text": "01 School",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 400,
+          "y": 4813,
+          "w": 161,
+          "h": 45
+        }
+      },
+      {
+        "level": "h3",
+        "text": "02 Craft",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 400,
+          "y": 5488,
+          "w": 131,
+          "h": 45
+        }
+      },
+      {
+        "level": "h3",
+        "text": "03 Retreat",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 400,
+          "y": 6165,
+          "w": 175,
+          "h": 45
+        }
+      },
+      {
+        "level": "h2",
+        "text": "company",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "18px",
+          "fontWeight": "400",
+          "lineHeight": "18px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 72,
+          "y": 6841,
+          "w": 18,
+          "h": 89
+        }
+      }
+    ],
+    "paras": [
+      {
+        "text": "Remember who you are",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "Sharing the Japanese Spirit of Harmony",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "調和とは「作り出すもの」ではなく「思い出すもの」。Izanamiは日本に受け継がれる和の精神を通して",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "14.4px",
+          "fontWeight": "400",
+          "lineHeight": "34.56px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "Designing the Dimensions of Life",
+        "typo": {
+          "fontFamily": "\"Playfair Display\", serif",
+          "fontSize": "45px",
+          "fontWeight": "400",
+          "lineHeight": "45px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "Izanamiは、3つの事業を通して、人生における調和をデザインします。いかに命を育み、暮らしを輝か",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "14.4px",
+          "fontWeight": "400",
+          "lineHeight": "34.56px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "「0歳からのママスクール®」というブランドで日本全国2万人以上の親子をサポート。親と子どもの「願い」",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "14.4px",
+          "fontWeight": "400",
+          "lineHeight": "28.8px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "日本の美意識で、感覚を呼び戻す。",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "18px",
+          "fontWeight": "400",
+          "lineHeight": "32.4px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "日本の美意識を現代のラグジュアリーへと翻訳し、唯一無二のプロダクトや空間をデザイン。ドバイを中心に、",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "14.4px",
+          "fontWeight": "400",
+          "lineHeight": "28.8px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      }
+    ],
+    "images": [
+      {
+        "src": "common_fv_cloud01.webp",
+        "w": 3366,
+        "h": 1620,
+        "ratio": 2.078,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud01.webp",
+        "w": 3366,
+        "h": 1620,
+        "ratio": 2.078,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud02.webp",
+        "w": 2430,
+        "h": 1170,
+        "ratio": 2.077,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud02.webp",
+        "w": 2430,
+        "h": 1170,
+        "ratio": 2.077,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      }
+    ],
+    "colors": [
+      {
+        "color": "rgb(217, 215, 212)",
+        "count": 563
+      },
+      {
+        "color": "rgb(0, 0, 0)",
+        "count": 29
+      },
+      {
+        "color": "rgb(10, 8, 1)",
+        "count": 3
+      },
+      {
+        "color": "rgb(255, 255, 255)",
+        "count": 2
+      }
+    ]
+  },
+  "tablet": {
+    "viewport": {
+      "w": 834,
+      "h": 1112
+    },
+    "docHeight": 5630,
+    "body": {
+      "background": "rgb(10, 8, 1)",
+      "color": "rgb(217, 215, 212)",
+      "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+      "fontSize": "16px",
+      "lineHeight": "normal"
+    },
+    "scrollBehavior": "auto",
+    "commonWidths": [
+      {
+        "width": 834,
+        "count": 39
+      },
+      {
+        "width": 751,
+        "count": 18
+      },
+      {
+        "width": 271,
+        "count": 4
+      },
+      {
+        "width": 270,
+        "count": 3
+      },
+      {
+        "width": 375,
+        "count": 3
+      },
+      {
+        "width": 561,
+        "count": 3
+      },
+      {
+        "width": 324,
+        "count": 2
+      },
+      {
+        "width": 480,
+        "count": 1
+      }
+    ],
+    "sticky": [
+      {
+        "tag": "header",
+        "cls": "header",
+        "position": "fixed",
+        "zIndex": "80",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 834,
+          "h": 1112
+        }
+      },
+      {
+        "tag": "span",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "nav",
+        "cls": "nav",
+        "position": "fixed",
+        "zIndex": "50",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 834,
+          "h": 1112
+        }
+      },
+      {
+        "tag": "h2",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label homePhilosophy_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 42,
+          "y": 1685,
+          "w": 15,
+          "h": 92
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "h2",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label homeProjects_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 42,
+          "y": 2268,
+          "w": 15,
+          "h": 68
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 3102,
+          "w": 834,
+          "h": 391
+        }
+      },
+      {
+        "tag": "p",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label stickySection_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 42,
+          "y": 3154,
+          "w": 15,
+          "h": 68
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 3493,
+          "w": 834,
+          "h": 392
+        }
+      },
+      {
+        "tag": "p",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label stickySection_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 42,
+          "y": 3545,
+          "w": 15,
+          "h": 68
+        }
+      }
+    ],
+    "sections": [
+      {
+        "tag": "header",
+        "cls": "header",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 834,
+          "h": 1112
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": null
+      },
+      {
+        "tag": "div",
+        "cls": "home",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 834,
+          "h": 5111
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "Remember who you are"
+      },
+      {
+        "tag": "section",
+        "cls": "homePhilosophy",
+        "box": {
+          "x": 0,
+          "y": 1112,
+          "w": 834,
+          "h": 1140
+        },
+        "paddingTop": "573.375px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "Philosophy"
+      },
+      {
+        "tag": "section",
+        "cls": "homeProjects",
+        "box": {
+          "x": 0,
+          "y": 2252,
+          "w": 834,
+          "h": 2025
+        },
+        "paddingTop": "15.6375px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "projects"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 3102,
+          "w": 834,
+          "h": 391
+        },
+        "paddingTop": "52.125px",
+        "paddingBottom": "52.125px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "01 School"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 3493,
+          "w": 834,
+          "h": 392
+        },
+        "paddingTop": "52.125px",
+        "paddingBottom": "52.125px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "02 Craft"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 3885,
+          "w": 834,
+          "h": 392
+        },
+        "paddingTop": "52.125px",
+        "paddingBottom": "52.125px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "03 Retreat"
+      },
+      {
+        "tag": "section",
+        "cls": "homeCompany",
+        "box": {
+          "x": 0,
+          "y": 4277,
+          "w": 834,
+          "h": 834
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "company"
+      },
+      {
+        "tag": "footer",
+        "cls": "footer",
+        "box": {
+          "x": 0,
+          "y": 5111,
+          "w": 834,
+          "h": 519
+        },
+        "paddingTop": "15.6375px",
+        "paddingBottom": "19.2862px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": null
+      }
+    ],
+    "headings": [
+      {
+        "level": "h1",
+        "text": "Remember who you are",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(255, 255, 255)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 146,
+          "y": 547,
+          "w": 542,
+          "h": 18
+        }
+      },
+      {
+        "level": "h2",
+        "text": "Philosophy",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "15px",
+          "fontWeight": "400",
+          "lineHeight": "15px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 42,
+          "y": 1685,
+          "w": 15,
+          "h": 92
+        }
+      },
+      {
+        "level": "h2",
+        "text": "projects",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "15px",
+          "fontWeight": "400",
+          "lineHeight": "15px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 42,
+          "y": 2268,
+          "w": 15,
+          "h": 68
+        }
+      },
+      {
+        "level": "h3",
+        "text": "01 School",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 231,
+          "y": 3154,
+          "w": 128,
+          "h": 38
+        }
+      },
+      {
+        "level": "h3",
+        "text": "02 Craft",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 231,
+          "y": 3545,
+          "w": 103,
+          "h": 38
+        }
+      },
+      {
+        "level": "h3",
+        "text": "03 Retreat",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 231,
+          "y": 3937,
+          "w": 139,
+          "h": 38
+        }
+      },
+      {
+        "level": "h2",
+        "text": "company",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "15px",
+          "fontWeight": "400",
+          "lineHeight": "15px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 42,
+          "y": 4329,
+          "w": 15,
+          "h": 74
+        }
+      }
+    ],
+    "paras": [
+      {
+        "text": "Sharing the Japanese Spirit of Harmony",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "調和とは「作り出すもの」ではなく「思い出すもの」。Izanamiは日本に受け継がれる和の精神を通して",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "lineHeight": "28.8px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "Designing the Dimensions of Life",
+        "typo": {
+          "fontFamily": "\"Playfair Display\", serif",
+          "fontSize": "37.5px",
+          "fontWeight": "400",
+          "lineHeight": "37.5px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "Izanamiは、3つの事業を通して、人生における調和をデザインします。いかに命を育み、暮らしを輝か",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "lineHeight": "28.8px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "「0歳からのママスクール®」というブランドで日本全国2万人以上の親子をサポート。親と子どもの「願い」",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "lineHeight": "24px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "日本の美意識で、感覚を呼び戻す。",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "15px",
+          "fontWeight": "400",
+          "lineHeight": "27px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "日本の美意識を現代のラグジュアリーへと翻訳し、唯一無二のプロダクトや空間をデザイン。ドバイを中心に、",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "lineHeight": "24px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "古代マヤ文明から受け継がれる植物療法で、本来の感覚や在り方を思い出す為のプライベートセレモニーを実施",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "12px",
+          "fontWeight": "400",
+          "lineHeight": "24px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      }
+    ],
+    "images": [
+      {
+        "src": "common_fv_cloud01.webp",
+        "w": 1949,
+        "h": 938,
+        "ratio": 2.078,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud01.webp",
+        "w": 1949,
+        "h": 938,
+        "ratio": 2.078,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud02.webp",
+        "w": 1407,
+        "h": 678,
+        "ratio": 2.077,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud02.webp",
+        "w": 1407,
+        "h": 678,
+        "ratio": 2.077,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      }
+    ],
+    "colors": [
+      {
+        "color": "rgb(217, 215, 212)",
+        "count": 622
+      },
+      {
+        "color": "rgb(0, 0, 0)",
+        "count": 29
+      },
+      {
+        "color": "rgb(10, 8, 1)",
+        "count": 2
+      },
+      {
+        "color": "rgb(255, 255, 255)",
+        "count": 2
+      }
+    ]
+  },
+  "mobile": {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "docHeight": 7639,
+    "body": {
+      "background": "rgb(10, 8, 1)",
+      "color": "rgb(217, 215, 212)",
+      "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+      "fontSize": "16px",
+      "lineHeight": "normal"
+    },
+    "scrollBehavior": "auto",
+    "commonWidths": [
+      {
+        "width": 390,
+        "count": 39
+      },
+      {
+        "width": 310,
+        "count": 18
+      },
+      {
+        "width": 252,
+        "count": 15
+      },
+      {
+        "width": 349,
+        "count": 3
+      },
+      {
+        "width": 204,
+        "count": 2
+      },
+      {
+        "width": 291,
+        "count": 2
+      }
+    ],
+    "sticky": [
+      {
+        "tag": "header",
+        "cls": "header",
+        "position": "fixed",
+        "zIndex": "80",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        }
+      },
+      {
+        "tag": "span",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "nav",
+        "cls": "nav",
+        "position": "fixed",
+        "zIndex": "50",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        }
+      },
+      {
+        "tag": "h2",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label homePhilosophy_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 40,
+          "y": 1252,
+          "w": 12,
+          "h": 71
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "h2",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label homeProjects_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 40,
+          "y": 2498,
+          "w": 12,
+          "h": 53
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 3400,
+          "w": 390,
+          "h": 856
+        }
+      },
+      {
+        "tag": "p",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label stickySection_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 40,
+          "y": 3497,
+          "w": 12,
+          "h": 53
+        }
+      },
+      {
+        "tag": "div",
+        "cls": "visuallyHidden",
+        "position": "fixed",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 0,
+          "y": 4256,
+          "w": 390,
+          "h": 856
+        }
+      },
+      {
+        "tag": "p",
+        "cls": "SP_cz_R12_H100 cz_R20_H100 label stickySection_label",
+        "position": "sticky",
+        "zIndex": "auto",
+        "box": {
+          "x": 40,
+          "y": 4353,
+          "w": 12,
+          "h": 53
+        }
+      }
+    ],
+    "sections": [
+      {
+        "tag": "header",
+        "cls": "header",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": null
+      },
+      {
+        "tag": "div",
+        "cls": "home",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 6865
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "Remember who you are"
+      },
+      {
+        "tag": "section",
+        "cls": "homePhilosophy",
+        "box": {
+          "x": 0,
+          "y": 1155,
+          "w": 390,
+          "h": 1313
+        },
+        "paddingTop": "97.0149px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "Philosophy"
+      },
+      {
+        "tag": "section",
+        "cls": "homeProjects",
+        "box": {
+          "x": 0,
+          "y": 2469,
+          "w": 390,
+          "h": 3500
+        },
+        "paddingTop": "29.1045px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "projects"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 3400,
+          "w": 390,
+          "h": 856
+        },
+        "paddingTop": "97.0149px",
+        "paddingBottom": "97.0149px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "01 School"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 4256,
+          "w": 390,
+          "h": 856
+        },
+        "paddingTop": "97.0149px",
+        "paddingBottom": "97.0149px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "02 Craft"
+      },
+      {
+        "tag": "section",
+        "cls": "stickySection",
+        "box": {
+          "x": 0,
+          "y": 5112,
+          "w": 390,
+          "h": 856
+        },
+        "paddingTop": "97.0149px",
+        "paddingBottom": "97.0149px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "03 Retreat"
+      },
+      {
+        "tag": "section",
+        "cls": "homeCompany",
+        "box": {
+          "x": 0,
+          "y": 5968,
+          "w": 390,
+          "h": 896
+        },
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": "company"
+      },
+      {
+        "tag": "footer",
+        "cls": "footer",
+        "box": {
+          "x": 0,
+          "y": 6865,
+          "w": 390,
+          "h": 775
+        },
+        "paddingTop": "29.1045px",
+        "paddingBottom": "48.5075px",
+        "background": "rgba(0, 0, 0, 0)",
+        "heading": null
+      }
+    ],
+    "headings": [
+      {
+        "level": "h1",
+        "text": "Remember who you are",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(255, 255, 255)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 79,
+          "y": 413,
+          "w": 233,
+          "h": 18
+        }
+      },
+      {
+        "level": "h2",
+        "text": "Philosophy",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "11.6418px",
+          "fontWeight": "400",
+          "lineHeight": "11.6418px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 40,
+          "y": 1252,
+          "w": 12,
+          "h": 71
+        }
+      },
+      {
+        "level": "h2",
+        "text": "projects",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "11.6418px",
+          "fontWeight": "400",
+          "lineHeight": "11.6418px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 40,
+          "y": 2498,
+          "w": 12,
+          "h": 53
+        }
+      },
+      {
+        "level": "h3",
+        "text": "01 School",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 98,
+          "y": 3497,
+          "w": 97,
+          "h": 29
+        }
+      },
+      {
+        "level": "h3",
+        "text": "02 Craft",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 98,
+          "y": 4353,
+          "w": 77,
+          "h": 29
+        }
+      },
+      {
+        "level": "h3",
+        "text": "03 Retreat",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 98,
+          "y": 5209,
+          "w": 105,
+          "h": 29
+        }
+      },
+      {
+        "level": "h2",
+        "text": "company",
+        "typo": {
+          "fontFamily": "Cinzel, serif",
+          "fontSize": "11.6418px",
+          "fontWeight": "400",
+          "lineHeight": "11.6418px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        },
+        "box": {
+          "x": 40,
+          "y": 6075,
+          "w": 12,
+          "h": 58
+        }
+      }
+    ],
+    "paras": [
+      {
+        "text": "Sharing the Japanese Spirit of Harmony",
+        "typo": {
+          "fontFamily": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", Meiryo, sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "normal",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "調和とは「作り出すもの」ではなく「思い出すもの」。Izanamiは日本に受け継がれる和の精神を通して",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "11.6418px",
+          "fontWeight": "400",
+          "lineHeight": "27.9403px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "Designing the Dimensions of Life",
+        "typo": {
+          "fontFamily": "\"Playfair Display\", serif",
+          "fontSize": "29.1045px",
+          "fontWeight": "400",
+          "lineHeight": "29.1045px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "Izanamiは、3つの事業を通して、人生における調和をデザインします。いかに命を育み、暮らしを輝か",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "11.6418px",
+          "fontWeight": "400",
+          "lineHeight": "27.9403px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "「0歳からのママスクール®」というブランドで日本全国2万人以上の親子をサポート。親と子どもの「願い」",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "11.6418px",
+          "fontWeight": "400",
+          "lineHeight": "23.2836px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "日本の美意識で、感覚を呼び戻す。",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "15.5224px",
+          "fontWeight": "400",
+          "lineHeight": "27.9403px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "日本の美意識を現代のラグジュアリーへと翻訳し、唯一無二のプロダクトや空間をデザイン。ドバイを中心に、",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "11.6418px",
+          "fontWeight": "400",
+          "lineHeight": "23.2836px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      },
+      {
+        "text": "古代マヤ文明から受け継がれる植物療法で、本来の感覚や在り方を思い出す為のプライベートセレモニーを実施",
+        "typo": {
+          "fontFamily": "\"Shippori Mincho\", serif",
+          "fontSize": "11.6418px",
+          "fontWeight": "400",
+          "lineHeight": "23.2836px",
+          "letterSpacing": "normal",
+          "color": "rgb(217, 215, 212)",
+          "textTransform": "none"
+        }
+      }
+    ],
+    "images": [
+      {
+        "src": "common_fv_cloud01.webp",
+        "w": 545,
+        "h": 262,
+        "ratio": 2.078,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud01.webp",
+        "w": 545,
+        "h": 262,
+        "ratio": 2.078,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud02.webp",
+        "w": 756,
+        "h": 364,
+        "ratio": 2.077,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      },
+      {
+        "src": "common_fv_cloud02.webp",
+        "w": 756,
+        "h": 364,
+        "ratio": 2.077,
+        "objectFit": "fill",
+        "borderRadius": "0px"
+      }
+    ],
+    "colors": [
+      {
+        "color": "rgb(217, 215, 212)",
+        "count": 622
+      },
+      {
+        "color": "rgb(0, 0, 0)",
+        "count": 29
+      },
+      {
+        "color": "rgb(10, 8, 1)",
+        "count": 2
+      },
+      {
+        "color": "rgb(255, 255, 255)",
+        "count": 2
+      }
+    ]
+  }
+}

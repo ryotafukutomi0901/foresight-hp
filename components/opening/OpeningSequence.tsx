@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
 import { gsap, useGSAP } from "@/hooks/useGsap";
 import { registerBrandEases } from "@/lib/motion";
 import {
@@ -9,36 +8,34 @@ import {
   markOpeningSeen,
   shouldPlayOpening,
 } from "@/lib/sequence";
-import { openingStage, settleOpeningStage } from "@/lib/openingStage";
-import { BRAND } from "@/lib/content";
+import { settleOpeningStage } from "@/lib/openingStage";
 
 /*
- * OPENING v3 — ローディングからHeroまでの一気通貫
+ * OPENING v4 — ヘッドライトが未来を照らす
  *
- * 「幕を降ろして、上げたらHeroだった」ではなく、
- * ローディングで結像した車両が、そのままHeroの背景として残り続ける。
- * 幕が落ちるのではなく、幕そのものがHeroになる。
+ * 「見通す」というブランドの意味を、光の運動そのもので表す。
+ * 闇の中で車のヘッドライトが灯り、こちらへ前進し、
+ * 光がレンズを埋めた瞬間にTOPへ抜ける。
  *
- *  0.0–0.6  闇。粒だけがわずかに息づく
- *  0.6–2.0  正面カットが闇から結像（ディザの粒度 粗→細）
- *  2.0–3.6  アングルが巡る。正面→斜め前→真横→背面→斜め前へ戻る
- *  3.6–4.4  斜め前で静止し、カメラが引いてHeroの定位置へ収まる
- *  4.4–5.2  ロゴがヘッダーへ着地。テキスト幕だけが消え、
- *           車両は画面に残ったままHeroへ引き継がれる
+ *  0.0–0.4  闇
+ *  0.4–4.4  動画本編（点灯 → 前進 → ヘッドライトへズーム）
+ *  4.0–4.8  白へ収束。動画の終端はまだ光が画面を覆いきらないため、
+ *           ここだけコード側のフラッシュで繋いで完全な白にする
+ *  4.8–5.4  白が引いてTOPが現れる。Heroのテキストがこの間に立ち上がる
  *
- * 車両の描画は R3F 側(components/three/VehicleReveal.tsx)が担当する。
- * ここは lib/openingStage.ts の値をGSAPで動かすだけで、
- * 描画そのものには関与しない。DOMと3Dの責務を分けている。
+ * 動画は Higgsfield で生成し public/video/hero-ignition.mp4 に置いている。
+ * 素材の元画像は public/images/foresight/vehicle-parts/03-front-face.webp。
  *
- * ⚠️ 3Dは prefers-reduced-motion で起動しない(AtmosphereMount)。
- *    その場合ここも演出を行わず、即座に完了扱いにする。
+ * ⚠️ テキストは動画に焼き込まない。コード側で描くことで、
+ *    文言変更・多言語化・フォント差し替えが動画の再生成なしに行える。
  */
 
-const TOTAL = 5.2;
+const TOTAL = 5.4;
 
 export default function OpeningSequence() {
   const [mounted, setMounted] = useState(true);
   const root = useRef<HTMLDivElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
 
   useGSAP(
     () => {
@@ -49,7 +46,6 @@ export default function OpeningSequence() {
       ).matches;
 
       if (reduced || !shouldPlayOpening()) {
-        // 車両は最終状態(Heroの定位置)で静止させ、幕は出さない
         settleOpeningStage();
         markOpeningSeen();
         markOpeningDone();
@@ -69,126 +65,58 @@ export default function OpeningSequence() {
       };
 
       const curtain = root.current;
-      const brand = root.current?.querySelector("[data-opening-brand]");
-      const tagline = root.current?.querySelector("[data-opening-tagline]");
-      const logoWrap = root.current?.querySelector("[data-opening-logo]");
-      if (!curtain || !brand || !tagline || !logoWrap) return;
+      const clip = video.current;
+      const flash = root.current?.querySelector("[data-flash]");
+      if (!curtain || !clip || !flash) return;
 
-      /* ---- 初期状態 ---- */
-      Object.assign(openingStage, {
-        reveal: 0,
-        focus: 0,
-        spin: 0,
-        dolly: 0,
-      });
-      gsap.set(brand, { autoAlpha: 0, y: 10 });
-      gsap.set(tagline, { autoAlpha: 0, y: 8 });
-      gsap.set(logoWrap, { autoAlpha: 0, scale: 0.94 });
+      gsap.set(clip, { autoAlpha: 0, scale: 1.04 });
+      gsap.set(flash, { autoAlpha: 0 });
+      /*
+       * 動画は自動で走らせず、必ず先頭で待たせる。
+       * preload="auto" でメタデータ取得中に再生が進むことがあり、
+       * タイムラインが点灯を見せる前に終端まで行ってしまう（実測）。
+       */
+      clip.pause();
+      clip.currentTime = 0;
 
       const tl = gsap.timeline({ onComplete: finish });
 
-      /* ---- 0.0–0.6 闇 ----
-         何も起きない時間を意図的に置く。ここで呼吸が整う。 */
+      /* ---- 0.0–0.4 闇。呼吸を整える間 ---- */
       tl.addLabel("silence", 0);
 
-      /* ---- 0.6–2.0 結像 ----
-         粒が集まって車が像を結ぶ。reveal(不透明度)より
-         focus(粒の収束)をわずかに遅らせると、
-         「輪郭が先に出て、後からディテールが定まる」順序になる。 */
-      tl.addLabel("form", 0.6)
-        .to(
-          openingStage,
-          { reveal: 1, duration: 1.1, ease: "brandOut" },
-          "form",
-        )
-        .to(
-          openingStage,
-          { focus: 1, duration: 1.6, ease: "power2.out" },
-          "form+=0.2",
-        )
-        // ブランド名は車の結像に少し遅れて出す
-        .to(
-          brand,
-          { autoAlpha: 1, y: 0, duration: 0.9, ease: "brandOut" },
-          "form+=0.5",
-        );
-
-      /* ---- 2.0–3.6 アングルが巡る ----
-         等間隔でない素材なので、linearだと切り替えの粗さが目立つ。
-         inOutで入りと終わりを丸め、「巡って落ち着く」運動にする。 */
-      tl.addLabel("orbit", 2.0)
-        .to(
-          openingStage,
-          { spin: 1, duration: 1.6, ease: "brandInOut" },
-          "orbit",
-        )
-        .to(
-          tagline,
-          { autoAlpha: 1, y: 0, duration: 0.8, ease: "brandOut" },
-          "orbit+=0.3",
-        );
-
-      /* ---- 3.6–4.4 Heroの定位置へ引く ----
-         ここで車両はHeroの背景としての位置・大きさに収まる。
-         この後もう動かない。 */
-      tl.addLabel("settle", 3.6)
-        .to(
-          openingStage,
-          { dolly: 1, duration: 1.5, ease: "brandOut" },
-          "settle",
-        )
-        // 文字は退場。車両だけが残る
-        .to(
-          [brand, tagline],
-          {
-            autoAlpha: 0,
-            y: -12,
-            duration: 0.5,
-            ease: "power2.in",
-            stagger: 0.06,
-          },
-          "settle+=0.1",
-        )
-        // ロゴが中央に結像してからヘッダーへ向かう
-        .to(
-          logoWrap,
-          { autoAlpha: 1, scale: 1, duration: 0.45, ease: "brandOut" },
-          "settle+=0.35",
-        );
-
-      /* ---- 4.4–5.2 ロゴ着地 + 幕の解除 ----
-         幕は元から透明で、持っているのは文字とロゴだけ。
-         ロゴがヘッダーへ着いたら幕を畳む。車両は3D側に残るため、
-         ここで画面から消えるものは何も無い。 */
-      tl.addLabel("handoff", 4.4)
+      /* ---- 0.4 動画の再生開始 ---- */
+      tl.addLabel("play", 0.4)
+        .to(clip, { autoAlpha: 1, duration: 0.5, ease: "power2.out" }, "play")
         .add(() => {
-          const from = root.current?.querySelector<HTMLElement>(
-            "[data-opening-logo]",
-          );
-          const to = document.querySelector<HTMLElement>("[data-header-logo]");
-          if (!from || !to) return;
+          clip.currentTime = 0;
+          void clip.play();
+        }, "play")
+        /*
+         * 再生中もわずかに寄せ続ける。動画自体のズームに
+         * CSS側の拡大を重ね、最後の加速を強くする。
+         */
+        .to(clip, { scale: 1.16, duration: 4, ease: "power2.in" }, "play");
 
-          const fromRect = from.getBoundingClientRect();
-          const toRect = to.getBoundingClientRect();
-          const dx =
-            toRect.left + toRect.width / 2 - (fromRect.left + fromRect.width / 2);
-          const dy =
-            toRect.top + toRect.height / 2 - (fromRect.top + fromRect.height / 2);
-
-          gsap.to(from, {
-            x: dx,
-            y: dy,
-            scale: toRect.width / fromRect.width,
-            duration: 0.6,
-            ease: "brandOut",
-          });
-        }, "handoff")
-        // Heroのテキスト入場と重ねる
-        .add(() => markOpeningDone(), "handoff+=0.2")
+      /* ---- 3.9–4.8 白へ収束 ----
+         動画は4.05秒。終端はヘッドライトが光っているが画面を覆いきらないため、
+         その手前からフラッシュを重ね始めて完全な白へ繋ぐ。
+         動画の最後のフレームで切り替えると、光が消えた瞬間が見えてしまう。 */
+      tl.addLabel("flash", 3.9)
         .to(
-          curtain,
-          { autoAlpha: 0, duration: 0.3, ease: "power1.out" },
-          "handoff+=0.45",
+          flash,
+          { autoAlpha: 1, duration: 0.6, ease: "power2.in" },
+          "flash",
+        )
+        /* ---- 4.8–5.4 白が引き、TOPが現れる ---- */
+        .addLabel("reveal", 4.8)
+        // 下のページが見えるよう、動画を先に消す
+        .to(clip, { autoAlpha: 0, duration: 0.2 }, "reveal")
+        // Heroのテキスト入場と白の後退を重ねる
+        .add(() => markOpeningDone(), "reveal")
+        .to(
+          flash,
+          { autoAlpha: 0, duration: 0.6, ease: "power2.out" },
+          "reveal+=0.05",
         );
 
       tl.totalDuration(TOTAL);
@@ -198,26 +126,10 @@ export default function OpeningSequence() {
           tl;
       }
 
-      /* ---- ポインタ追従（車両の微細な視差） ---- */
-      const onPointer = (e: PointerEvent) => {
-        openingStage.pointerX = (e.clientX / window.innerWidth) * 2 - 1;
-        openingStage.pointerY = (e.clientY / window.innerHeight) * 2 - 1;
-      };
-      window.addEventListener("pointermove", onPointer, { passive: true });
-
-      /* ---- スキップ ----
-         車両は最終状態へ送る。スキップしても
-         「Heroに車が居る」状態は保たれなければならない。 */
+      /* ---- スキップ ---- */
       const skip = () => {
         tl.pause();
-        gsap.to(openingStage, {
-          reveal: 1,
-          focus: 1,
-          spin: 1,
-          dolly: 1,
-          duration: 0.4,
-          ease: "power2.out",
-        });
+        clip.pause();
         gsap.to(curtain, {
           autoAlpha: 0,
           duration: 0.35,
@@ -237,7 +149,6 @@ export default function OpeningSequence() {
       btn?.addEventListener("click", skip);
 
       return () => {
-        window.removeEventListener("pointermove", onPointer);
         document.removeEventListener("keydown", onKey);
         btn?.removeEventListener("click", skip);
         document.body.style.overflow = prevOverflow;
@@ -252,76 +163,34 @@ export default function OpeningSequence() {
     <div
       ref={root}
       data-opening
-      className="fixed inset-0 z-[100] overflow-hidden"
-      /*
-       * 地は透明。車両は背後の3D空間が描いており、
-       * 不透明な幕を敷くと隠れてしまう(実測で確認)。
-       * 暗さは3D側のフォグとビネットが既に作っているため、
-       * ここで黒を重ねる必要はない。
-       */
-      style={{ backgroundColor: "transparent" }}
+      className="fixed inset-0 z-[100] overflow-hidden bg-void"
     >
       {/*
-        幕はテキストとロゴだけを持つ。車両は背後の3D空間が描いている。
-        幕の地を透明にすれば、そのまま車両が見える構造にしてある。
+        動画は画面全体を覆う。object-cover で縦横比の違いを吸収し、
+        どの端末でもヘッドライトが中央に来るようにする。
       */}
-      <div
+      <video
+        ref={video}
+        data-opening-video
+        className="absolute inset-0 h-full w-full object-cover"
+        src="/video/hero-ignition.mp4"
+        muted
+        playsInline
+        preload="auto"
         aria-hidden
-        className="absolute inset-0 flex flex-col items-center justify-center"
-      >
-        <p
-          data-opening-brand
-          className="text-ink-strong"
-          style={{
-            fontFamily: "var(--font-latin)",
-            fontSize: "clamp(1.75rem, 5vw, 3.5rem)",
-            fontWeight: 600,
-            letterSpacing: "0.32em",
-            textIndent: "0.32em",
-            willChange: "opacity, transform",
-          }}
-        >
-          {BRAND.name.toUpperCase()}
-        </p>
+      />
 
-        <p
-          data-opening-tagline
-          className="mt-6 text-ink-soft"
-          style={{
-            fontFamily: "var(--font-jp)",
-            fontSize: "clamp(0.8125rem, 1.5vw, 1.0625rem)",
-            letterSpacing: "0.2em",
-            willChange: "opacity, transform",
-          }}
-        >
-          {BRAND.core}
-        </p>
-
-        {/* ロゴマーク: 最後にヘッダーへ着地する */}
-        <div
-          data-opening-logo
-          className="art-blend absolute bg-white"
-          style={{
-            width: "min(40vw, 220px)",
-            aspectRatio: "1536 / 1085",
-            willChange: "transform, opacity",
-          }}
-        >
-          <Image
-            src="/logo2.svg"
-            alt=""
-            fill
-            sizes="(max-width: 768px) 40vw, 220px"
-            priority
-            className="object-contain"
-          />
-        </div>
-      </div>
+      {/* 白への収束。動画の終端を受けて画面を光で満たす */}
+      <div
+        data-flash
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-white"
+      />
 
       <button
         data-skip
         type="button"
-        className="absolute right-4 top-4 z-[110] min-h-11 px-5 text-[0.65rem] tracking-[0.28em] text-ink-soft transition-colors duration-300 hover:text-ink sm:right-8 sm:top-8"
+        className="absolute right-4 top-4 z-[110] min-h-11 px-5 text-[0.65rem] tracking-[0.28em] text-white/70 mix-blend-difference transition-colors duration-300 hover:text-white sm:right-8 sm:top-8"
       >
         SKIP
       </button>

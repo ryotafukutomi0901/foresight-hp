@@ -230,7 +230,12 @@ export default function VehicleReveal() {
      * そのまま線の明るさになるため。1.0 だと素材の中間調が
      * 霧に埋もれて車が沈む（実測）。線を持ち上げて主役にする。
      */
-    const revealed = s.reveal * 2.2;
+    /*
+     * ローディング中(動画再生中)は3Dの車を出さない。
+     * 動画自体が車を映しているため、二重に出ると画面が破綻する。
+     * slideIn が動き出してから姿を現す。
+     */
+    const revealed = s.reveal * s.slideIn * 2.2;
     fu.uOpacity.value = revealed * (1 - frac);
     bu.uOpacity.value = revealed * frac;
 
@@ -270,6 +275,12 @@ export default function VehicleReveal() {
      */
     g.position.z = THREE.MathUtils.lerp(-2.6, -5.2, s.dolly);
     g.position.y = THREE.MathUtils.lerp(0, 0.25, s.dolly);
+    /*
+     * 右からスライドインして定位置へ。
+     * Heroは左半分がテキストなので、車両は右に寄せて構図を分ける。
+     * slideIn=0 で画面外(右)、1 で定位置。
+     */
+    g.position.x = THREE.MathUtils.lerp(9, 2.6, s.slideIn);
     const scale = THREE.MathUtils.lerp(0.82, 0.72, s.dolly);
     g.scale.setScalar(scale);
 

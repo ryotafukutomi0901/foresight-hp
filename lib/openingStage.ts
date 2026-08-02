@@ -12,17 +12,24 @@
  */
 
 export const openingStage = {
-  /** 闇からの結像。0=何も見えない / 1=完全に見えている */
-  reveal: 0,
+  /*
+   * 闇からの結像。0=何も見えない / 1=完全に見えている。
+   * 現在のOpeningは動画が結像を担うため、3D側は既定で1にしておき、
+   * 実際の出現は slideIn が制御する。
+   */
+  reveal: 1,
 
   /** ディザの収束。0=粗い粒 / 1=像が定まった状態 */
-  focus: 0,
+  focus: 1,
 
   /** アングル巡り。0=最初のカット / 1=最後のカット */
-  spin: 0,
+  spin: 1,
 
   /** カメラの引き。0=寄り(ローディング) / 1=Heroの定位置 */
   dolly: 0,
+
+  /** 右からのスライドイン。0=画面外(右) / 1=Heroの定位置 */
+  slideIn: 0,
 
   /** ポインタ位置（画面中央を0とした -1〜1）。微細な視差に使う */
   pointerX: 0,
@@ -35,4 +42,5 @@ export function settleOpeningStage() {
   openingStage.focus = 1;
   openingStage.spin = 1;
   openingStage.dolly = 1;
+  openingStage.slideIn = 1;
 }

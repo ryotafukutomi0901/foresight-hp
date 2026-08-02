@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import CtaButton from "@/components/ui/CtaButton";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { onOpeningDone } from "@/lib/sequence";
+import { openingStage } from "@/lib/openingStage";
 import { CTA, HERO } from "@/lib/content";
 import { heroGaze as G, lerp } from "@/lib/tokens";
 
@@ -24,6 +25,17 @@ export default function Hero() {
       .matches;
 
     const tl = gsap.timeline({ id: "hero-intro", paused: !reduced });
+
+    /*
+     * 背景の車両(R3F)が右からスライドインする。
+     * Openingの白が引くのと同時に始め、光の中から車が現れたように見せる。
+     * テキストより僅かに先行させ、車→文字の順で視線を運ぶ。
+     */
+    tl.to(
+      openingStage,
+      { slideIn: 1, dolly: 1, duration: 1.6, ease: "brandOut" },
+      0,
+    );
 
     tl.from("[data-hero-line]", {
       yPercent: 115,
@@ -110,7 +122,14 @@ export default function Hero() {
         そこに結像した車両)がそのまま背景になる。
         Heroが独自のビジュアルを持つと、ローディングとの継ぎ目が生まれる。
       */}
+      {/*
+        container-x(最大1440px・中央寄せ)は保ったまま、その内側で
+        テキストを左半分に閉じ込める。車両(3D)は右半分に着地するため、
+        ここを狭めないと文字と車が重なる(実測)。
+        lg未満は車両が背景へ回るので全幅で読ませる。
+      */}
       <div className="container-x relative z-10">
+        <div className="lg:max-w-[52%]">
         <p
           data-hero-en
           className="label text-ink-faint"
@@ -156,6 +175,7 @@ export default function Hero() {
               {CTA.find.label}
             </CtaButton>
           </div>
+        </div>
         </div>
       </div>
 
