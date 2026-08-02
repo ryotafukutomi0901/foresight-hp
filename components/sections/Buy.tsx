@@ -107,12 +107,12 @@ export default function Buy() {
       ref={scope}
       id="buy"
       aria-labelledby="buy-heading"
-      // 明転の起点。地は #F2F2F2（Color System の LIGHT 既定面）
-      data-tone="light"
       className="section-y relative"
     >
-      <div className="container-x">
-        <SectionHead index={BUY.index} label={BUY.label} id="buy-heading" />
+      <div className="container-x lg:pl-24">
+        <SectionHead index={BUY.index} label={BUY.label} id="buy-heading"
+          orientation="vertical"
+        />
 
         <div className="mt-16 grid gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-24">
           <h2 className="text-display-l font-normal leading-[1.22] text-ink">

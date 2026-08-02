@@ -151,9 +151,16 @@ export default function Header() {
        * ブレンドはヘッダー自身の背景に対して解決されるため、
        * ロゴの周りだけ明るい四角として浮いてしまう(実測で8階調の差)。
        */
-      className={`fixed inset-x-0 top-0 z-10 border-b border-rule/60 backdrop-blur-md transition-colors duration-500 ${
-        overLight ? "bg-void" : "bg-void/80"
-      }`}
+      /*
+       * 帯として存在を主張させず、ロゴとナビだけが浮いている状態にする。
+       * 明転セクションを廃止したため、スクロールで色を変える必要も無くなった。
+       *
+       * ⚠️ 完全な transparent にはしない。ロゴは mix-blend-mode:lighten で
+       *    黒を透過させており、ブレンドは「自分の親の背景」に対して解決される。
+       *    親が透明だと解決先が無く、ロゴの黒地が矩形として残る(実測)。
+       *    地と同じ色を薄く敷くことで、見た目は透明のままブレンドを成立させる。
+       */
+      className="fixed inset-x-0 top-0 z-10 bg-void/[0.01] transition-colors duration-500"
     >
       <div className="container-x flex h-16 items-center justify-between gap-6 sm:h-20">
         <Link

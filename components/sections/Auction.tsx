@@ -95,15 +95,14 @@ export default function Auction() {
       id="find"
       aria-labelledby="find-heading"
       // 明転の終わり。地を #CFCFCF まで沈め、次のCTA(#090909)へ向かって暗転していく
-      data-tone="light"
-      data-tone-surface="sunken"
       className="section-y relative overflow-hidden"
     >
-      <div className="container-x">
+      <div className="container-x lg:pl-24">
         <SectionHead
           index={AUCTION.index}
           label={AUCTION.label}
           id="find-heading"
+          orientation="vertical"
         />
 
         {/* 走査線 */}

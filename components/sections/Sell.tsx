@@ -78,12 +78,12 @@ export default function Sell() {
       id="sell"
       aria-labelledby="sell-heading"
       // 明転の頂点。地を #FFFFFF まで持ち上げる
-      data-tone="light"
-      data-tone-surface="raised"
       className="section-y relative"
     >
-      <div className="container-x">
-        <SectionHead index={SELL.index} label={SELL.label} id="sell-heading" />
+      <div className="container-x lg:pl-24">
+        <SectionHead index={SELL.index} label={SELL.label} id="sell-heading"
+          orientation="vertical"
+        />
 
         <div className="mt-16 grid gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-24">
           <h2 className="text-display-l font-normal leading-[1.22] text-ink">
