@@ -14,7 +14,6 @@ import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
 import { camera as CAM, dof as DOF } from "@/lib/tokens";
 import NarrativeCorridor from "./NarrativeCorridor";
-import VehicleReveal from "./VehicleReveal";
 
 /*
  * ページ全体に常駐する3D空間。
@@ -393,13 +392,6 @@ export default function Atmosphere({
         */}
         <Suspense fallback={null}>
           <NarrativeCorridor />
-        </Suspense>
-        {/*
-          ローディングからHeroまでを繋ぐ車両。回廊と同じCanvasに同居させる。
-          別Canvasにするとコンテキストが2つになり、GPUメモリを二重に食う。
-        */}
-        <Suspense fallback={null}>
-          <VehicleReveal />
         </Suspense>
       </Rig>
       <Cinematic />

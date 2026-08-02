@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import CtaButton from "@/components/ui/CtaButton";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { onOpeningDone } from "@/lib/sequence";
-import { openingStage } from "@/lib/openingStage";
 import { CTA, HERO } from "@/lib/content";
 import { heroGaze as G, lerp } from "@/lib/tokens";
 
@@ -12,30 +11,46 @@ import { heroGaze as G, lerp } from "@/lib/tokens";
  * HERO — 説明ではなく第一印象。
  * 情報は詰め込まない。「この会社は車を普通とは違う視点で見ている」と直感させる。
  *
- * 背景の車両は Opening から連続して存在し続けている(components/three/VehicleReveal)。
- * Heroが独自に絵を持たないのは、ローディングとの継ぎ目を作らないため。
- * ここが担うのはテキストの入場だけ。
+ * 右半分の車両は Higgsfield で生成した動画(public/video/hero-vehicle.mp4)。
+ * Openingの白が引くのに合わせて右からスライドインし、以後は
+ * カメラがゆっくり回り込み続ける。静止画では出せない「生きている」感を作る。
+ *
+ * 文言は動画に焼き込まず、すべてここで描く。
+ * 文言変更・多言語化を動画の再生成なしに行えるようにするため。
  *
  * 入場は Opening の完了合図で再生する。即再生すると幕の下で
  * 演出が終わってしまい、幕が上がったときには静止画になる。
  */
 export default function Hero() {
-  const scope = useScopedGsap<HTMLElement>(() => {
+  const scope = useScopedGsap<HTMLElement>(({ scope }) => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
       .matches;
 
     const tl = gsap.timeline({ id: "hero-intro", paused: !reduced });
 
     /*
-     * 背景の車両(R3F)が右からスライドインする。
-     * Openingの白が引くのと同時に始め、光の中から車が現れたように見せる。
+     * 車両の動画が右からスライドインする。
      * テキストより僅かに先行させ、車→文字の順で視線を運ぶ。
      */
-    tl.to(
-      openingStage,
-      { slideIn: 1, dolly: 1, duration: 1.6, ease: "brandOut" },
-      0,
+    const clip = scope.current?.querySelector<HTMLVideoElement>(
+      "[data-hero-video]",
     );
+    if (clip) {
+      tl.fromTo(
+        clip,
+        { xPercent: 55, autoAlpha: 0 },
+        {
+          xPercent: 0,
+          autoAlpha: 1,
+          duration: 1.5,
+          ease: "brandOut",
+          onStart: () => {
+            if (!reduced) void clip.play();
+          },
+        },
+        0,
+      );
+    }
 
     tl.from("[data-hero-line]", {
       yPercent: 115,
@@ -118,10 +133,37 @@ export default function Hero() {
       className="relative flex min-h-[100svh] w-full items-center overflow-hidden pb-24 pt-32"
     >
       {/*
-        背景に絵を置かない。Openingから連続している3D空間(霧・光条・塵と、
-        そこに結像した車両)がそのまま背景になる。
-        Heroが独自のビジュアルを持つと、ローディングとの継ぎ目が生まれる。
+        右半分の車両。Openingの光が引くのに合わせて右からスライドインする。
+        object-contain で全景を保つ(cover だと車体が切れる)。
+        mix-blend-screen で黒地を透過させ、背景の霧と馴染ませている。
+        lg未満では文字と重なるため、背景として薄く敷くに留める。
       */}
+      <video
+        data-hero-video
+        aria-hidden
+        /*
+         * 動画は16:9。要素の比率をこれに合わせないと object-contain で
+         * 上下に余白ができ、その黒地が矩形の縁として見える(実測)。
+         * aspect-video で一致させ、高さは幅から決まるようにする。
+         */
+        className="pointer-events-none absolute right-0 top-1/2 aspect-video w-[96%] -translate-y-1/2 opacity-30 mix-blend-screen lg:-right-[4%] lg:w-[62%] lg:opacity-100"
+        style={{
+          /*
+           * 縁を放射状に溶かす。動画の黒地は完全な0ではないため
+           * mix-blend-screen だけでは矩形が枠として見える(実測)。
+           * マスクで四辺を落として背景の霧に馴染ませる。
+           */
+          maskImage:
+            "radial-gradient(ellipse 74% 68% at 50% 50%, #000 62%, transparent 100%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 74% 68% at 50% 50%, #000 62%, transparent 100%)",
+        }}
+        src="/video/hero-vehicle.mp4"
+        muted
+        loop
+        playsInline
+        preload="auto"
+      />
       {/*
         container-x(最大1440px・中央寄せ)は保ったまま、その内側で
         テキストを左半分に閉じ込める。車両(3D)は右半分に着地するため、
