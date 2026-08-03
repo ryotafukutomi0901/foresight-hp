@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import OpeningSequence from "@/components/opening/OpeningSequence";
 import AtmosphereMount from "@/components/three/AtmosphereMount";
+import VehicleSceneMount from "@/components/three/VehicleSceneMount";
 import "./globals.css";
 
 /*
@@ -125,6 +126,15 @@ export default function RootLayout({
           本文側は背景を透過させ、この空間が透けて見える構造にしている。
         */}
         <AtmosphereMount />
+        {/*
+          主役のSUV。Hero〜Contactを貫く単一のCanvasで、
+          セクションを跨いで同一インスタンスが状態を引き継ぐ。
+
+          ⚠️ ここ(layout直下)に置くこと。セクション側からマウントすると
+             セクションを抜けたときにアンマウントされ、
+             「車両がセクションごとに作り直される」ことになる。
+        */}
+        <VehicleSceneMount />
         <Header />
         <SmoothScrollProvider>
           <main id="main" className="relative z-10">

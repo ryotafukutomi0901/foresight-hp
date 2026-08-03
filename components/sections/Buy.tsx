@@ -7,14 +7,12 @@ import { REVEAL_TRIGGER } from "@/lib/motion";
 import { BUY } from "@/lib/content";
 
 /*
- * BUY — サイト内で最も強い行動セクション。
+ * BUY — 中古車販売。お客様が「買う」セクション。ポータルサイトの大量カードUIにはしない。
+ * 実在の在庫データが無いため車両一覧は作らない(存在しない情報を作らない)。
  *
- * モーションの狙い: 「走れなくても、終わりじゃない」を運動で語る。
- * 見出しは重い ease(brandHeavy) で下から立ち上がり、
- * 中核の一行「動かないなら、取りに行く。」だけは別のease・別の速度で
- * 突出させ、セクション内に一段強い階層を作る。
- *
- * 「高価買取」「無料査定」「即日対応」のようなテンプレート表現は使わない。
+ * モーションの狙い: 「渡す」という行為の身体化。
+ * 要素が左から右へ引き継がれるように出現する。
+ * モバイルでは横移動が破綻するため、縦方向の受け渡しに置き換える。
  */
 export default function Buy() {
   const scope = useScopedGsap<HTMLElement>(({ scope }) => {
@@ -22,11 +20,13 @@ export default function Buy() {
 
     mm.add(
       {
-        motion: "(prefers-reduced-motion: no-preference)",
+        desktop: "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+        mobile: "(max-width: 767px) and (prefers-reduced-motion: no-preference)",
         reduced: "(prefers-reduced-motion: reduce)",
       },
       (ctx) => {
-        if (ctx.conditions?.reduced) return;
+        const { desktop, reduced } = ctx.conditions as Record<string, boolean>;
+        if (reduced) return;
 
         gsap
           .timeline({
@@ -45,59 +45,29 @@ export default function Buy() {
           )
           .from(
             "[data-buy-line]",
-            {
-              yPercent: 115,
-              duration: 1.25,
-              ease: "brandHeavy",
-              stagger: 0.11,
-            },
-            "-=0.9",
+            { yPercent: 115, duration: 1.15, ease: "brandOut", stagger: 0.1 },
+            "-=0.95",
           )
           .from(
-            "[data-buy-body]",
-            { autoAlpha: 0, y: 22, duration: 0.9, ease: "brandOut" },
+            "[data-buy-lead]",
+            { autoAlpha: 0, y: 20, duration: 0.9, ease: "brandOut", stagger: 0.1 },
             "-=0.7",
           );
 
-        // 断章は畳みかけるリズムで
-        gsap.from("[data-buy-fragment]", {
+        // 受け渡しの動き。デスクトップは横、モバイルは縦
+        gsap.from("[data-buy-step]", {
           autoAlpha: 0,
-          x: -14,
-          duration: 0.6,
+          x: desktop ? -48 : 0,
+          y: desktop ? 0 : 28,
+          duration: 1.0,
           ease: "brandOut",
-          stagger: 0.09,
+          stagger: 0.18,
           scrollTrigger: {
-            trigger: "[data-buy-fragments]",
-            start: "top 84%",
+            trigger: "[data-buy-steps]",
+            start: "top 82%",
             once: true,
           },
         });
-
-        // 中核の一行。他とは違う速度と余韻で突出させる
-        gsap
-          .timeline({
-            scrollTrigger: {
-              trigger: "[data-buy-core]",
-              start: "top 80%",
-              once: true,
-            },
-          })
-          .from("[data-buy-core-line]", {
-            yPercent: 118,
-            duration: 1.5,
-            ease: "brandOut",
-            stagger: 0.16,
-          })
-          .from(
-            "[data-buy-core-rule]",
-            {
-              scaleX: 0,
-              transformOrigin: "left center",
-              duration: 1.2,
-              ease: "brandInOut",
-            },
-            "-=1.1",
-          );
       },
     );
   }, []);
@@ -126,20 +96,16 @@ export default function Buy() {
           </h2>
 
           <div className="flex flex-col justify-end">
-            {/* 状態の断章。仕様表ではなく、畳みかける短文として置く */}
-            <ul data-buy-fragments className="flex flex-wrap gap-x-6 gap-y-2">
-              {BUY.fragments.map((f) => (
-                <li
-                  key={f}
-                  data-buy-fragment
-                  className="text-body-l font-normal text-ink-soft"
-                >
-                  {f}
-                </li>
-              ))}
-            </ul>
             <p
-              data-buy-body
+              data-buy-lead
+              className="text-display-s font-normal leading-relaxed text-ink"
+            >
+              {BUY.lead[0]}
+              <br />
+              {BUY.lead[1]}
+            </p>
+            <p
+              data-buy-lead
               className="mt-8 text-sm leading-loose text-ink-soft"
             >
               {BUY.body}
@@ -147,27 +113,32 @@ export default function Buy() {
           </div>
         </div>
 
-        {/* 中核の一行。前後に大きな余白を取り、単独で立たせる */}
-        <div data-buy-core className="mt-32 sm:mt-44">
-          <span
-            data-buy-core-rule
-            aria-hidden
-            className="mb-12 block h-px w-full origin-left bg-rule-strong"
-          />
-          <p className="text-display-l font-normal leading-[1.2] text-ink">
-            {BUY.core.map((line) => (
-              <span key={line} className="line-mask">
-                <span data-buy-core-line className="block">
-                  {line}
-                </span>
-              </span>
-            ))}
-          </p>
-          <p className="mt-10 text-body-l text-ink-soft">{BUY.bridge}</p>
+        {/*
+          在庫一覧の代わりに「渡すまでの姿勢」を置く。
+          将来、実在庫を掲載する場合もここを拡張し、
+          ポータル型の大量カードUIは採らない。
+        */}
+        <ol
+          data-buy-steps
+          className="mt-28 grid gap-px border border-rule bg-rule sm:grid-cols-3"
+        >
+          {BUY.steps.map((step) => (
+            <li
+              key={step.n}
+              data-buy-step
+              className="flex flex-col gap-4 bg-base p-8 sm:p-10"
+            >
+              <span className="label text-ink-faint">{step.n}</span>
+              <h3 className="text-display-s font-normal text-ink">{step.t}</h3>
+              <p className="text-sm leading-loose text-ink-soft">{step.d}</p>
+            </li>
+          ))}
+        </ol>
 
-          <div className="mt-14">
-            <CtaButton href={BUY.cta.href}>{BUY.cta.label}</CtaButton>
-          </div>
+        <div className="mt-16">
+          <CtaButton href={BUY.cta.href} variant="secondary">
+            {BUY.cta.label}
+          </CtaButton>
         </div>
       </div>
     </section>

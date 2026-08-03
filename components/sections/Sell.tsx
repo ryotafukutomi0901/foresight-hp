@@ -7,12 +7,14 @@ import { REVEAL_TRIGGER } from "@/lib/motion";
 import { SELL } from "@/lib/content";
 
 /*
- * SELL — 中古車販売。ポータルサイトの大量カードUIにはしない。
- * 実在の在庫データが無いため車両一覧は作らない(存在しない情報を作らない)。
+ * SELL — 買取。お客様が「売る」セクション。サイト内で最も強い行動セクション。
  *
- * モーションの狙い: 「渡す」という行為の身体化。
- * 要素が左から右へ引き継がれるように出現する。
- * モバイルでは横移動が破綻するため、縦方向の受け渡しに置き換える。
+ * モーションの狙い: 「走れなくても、終わりじゃない」を運動で語る。
+ * 見出しは重い ease(brandHeavy) で下から立ち上がり、
+ * 中核の一行「動かないなら、取りに行く。」だけは別のease・別の速度で
+ * 突出させ、セクション内に一段強い階層を作る。
+ *
+ * 「高価買取」「無料査定」「即日対応」のようなテンプレート表現は使わない。
  */
 export default function Sell() {
   const scope = useScopedGsap<HTMLElement>(({ scope }) => {
@@ -20,13 +22,11 @@ export default function Sell() {
 
     mm.add(
       {
-        desktop: "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
-        mobile: "(max-width: 767px) and (prefers-reduced-motion: no-preference)",
+        motion: "(prefers-reduced-motion: no-preference)",
         reduced: "(prefers-reduced-motion: reduce)",
       },
       (ctx) => {
-        const { desktop, reduced } = ctx.conditions as Record<string, boolean>;
-        if (reduced) return;
+        if (ctx.conditions?.reduced) return;
 
         gsap
           .timeline({
@@ -45,29 +45,59 @@ export default function Sell() {
           )
           .from(
             "[data-sell-line]",
-            { yPercent: 115, duration: 1.15, ease: "brandOut", stagger: 0.1 },
-            "-=0.95",
+            {
+              yPercent: 115,
+              duration: 1.25,
+              ease: "brandHeavy",
+              stagger: 0.11,
+            },
+            "-=0.9",
           )
           .from(
-            "[data-sell-lead]",
-            { autoAlpha: 0, y: 20, duration: 0.9, ease: "brandOut", stagger: 0.1 },
+            "[data-sell-body]",
+            { autoAlpha: 0, y: 22, duration: 0.9, ease: "brandOut" },
             "-=0.7",
           );
 
-        // 受け渡しの動き。デスクトップは横、モバイルは縦
-        gsap.from("[data-sell-step]", {
+        // 断章は畳みかけるリズムで
+        gsap.from("[data-sell-fragment]", {
           autoAlpha: 0,
-          x: desktop ? -48 : 0,
-          y: desktop ? 0 : 28,
-          duration: 1.0,
+          x: -14,
+          duration: 0.6,
           ease: "brandOut",
-          stagger: 0.18,
+          stagger: 0.09,
           scrollTrigger: {
-            trigger: "[data-sell-steps]",
-            start: "top 82%",
+            trigger: "[data-sell-fragments]",
+            start: "top 84%",
             once: true,
           },
         });
+
+        // 中核の一行。他とは違う速度と余韻で突出させる
+        gsap
+          .timeline({
+            scrollTrigger: {
+              trigger: "[data-sell-core]",
+              start: "top 80%",
+              once: true,
+            },
+          })
+          .from("[data-sell-core-line]", {
+            yPercent: 118,
+            duration: 1.5,
+            ease: "brandOut",
+            stagger: 0.16,
+          })
+          .from(
+            "[data-sell-core-rule]",
+            {
+              scaleX: 0,
+              transformOrigin: "left center",
+              duration: 1.2,
+              ease: "brandInOut",
+            },
+            "-=1.1",
+          );
       },
     );
   }, []);
@@ -77,7 +107,6 @@ export default function Sell() {
       ref={scope}
       id="sell"
       aria-labelledby="sell-heading"
-      // 明転の頂点。地を #FFFFFF まで持ち上げる
       className="section-y relative"
     >
       <div className="container-x lg:pl-24">
@@ -97,16 +126,20 @@ export default function Sell() {
           </h2>
 
           <div className="flex flex-col justify-end">
+            {/* 状態の断章。仕様表ではなく、畳みかける短文として置く */}
+            <ul data-sell-fragments className="flex flex-wrap gap-x-6 gap-y-2">
+              {SELL.fragments.map((f) => (
+                <li
+                  key={f}
+                  data-sell-fragment
+                  className="text-body-l font-normal text-ink-soft"
+                >
+                  {f}
+                </li>
+              ))}
+            </ul>
             <p
-              data-sell-lead
-              className="text-display-s font-normal leading-relaxed text-ink"
-            >
-              {SELL.lead[0]}
-              <br />
-              {SELL.lead[1]}
-            </p>
-            <p
-              data-sell-lead
+              data-sell-body
               className="mt-8 text-sm leading-loose text-ink-soft"
             >
               {SELL.body}
@@ -114,32 +147,27 @@ export default function Sell() {
           </div>
         </div>
 
-        {/*
-          在庫一覧の代わりに「渡すまでの姿勢」を置く。
-          将来、実在庫を掲載する場合もここを拡張し、
-          ポータル型の大量カードUIは採らない。
-        */}
-        <ol
-          data-sell-steps
-          className="mt-28 grid gap-px border border-rule bg-rule sm:grid-cols-3"
-        >
-          {SELL.steps.map((step) => (
-            <li
-              key={step.n}
-              data-sell-step
-              className="flex flex-col gap-4 bg-base p-8 sm:p-10"
-            >
-              <span className="label text-ink-faint">{step.n}</span>
-              <h3 className="text-display-s font-normal text-ink">{step.t}</h3>
-              <p className="text-sm leading-loose text-ink-soft">{step.d}</p>
-            </li>
-          ))}
-        </ol>
+        {/* 中核の一行。前後に大きな余白を取り、単独で立たせる */}
+        <div data-sell-core className="mt-32 sm:mt-44">
+          <span
+            data-sell-core-rule
+            aria-hidden
+            className="mb-12 block h-px w-full origin-left bg-rule-strong"
+          />
+          <p className="text-display-l font-normal leading-[1.2] text-ink">
+            {SELL.core.map((line) => (
+              <span key={line} className="line-mask">
+                <span data-sell-core-line className="block">
+                  {line}
+                </span>
+              </span>
+            ))}
+          </p>
+          <p className="mt-10 text-body-l text-ink-soft">{SELL.bridge}</p>
 
-        <div className="mt-16">
-          <CtaButton href={SELL.cta.href} variant="secondary">
-            {SELL.cta.label}
-          </CtaButton>
+          <div className="mt-14">
+            <CtaButton href={SELL.cta.href}>{SELL.cta.label}</CtaButton>
+          </div>
         </div>
       </div>
     </section>

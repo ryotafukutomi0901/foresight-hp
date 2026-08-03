@@ -17,8 +17,8 @@ export const BRAND = {
 } as const;
 
 export const NAV = [
-  { label: "BUY", href: "#buy", ja: "車を売る" },
-  { label: "SELL", href: "#sell", ja: "車を買う" },
+  { label: "SELL", href: "#sell", ja: "車を売る" },
+  { label: "BUY", href: "#buy", ja: "車を買う" },
   { label: "FIND", href: "#find", ja: "車を探す" },
   { label: "CONTACT", href: "#contact", ja: "お問い合わせ" },
 ] as const;
@@ -194,8 +194,14 @@ export const UNSEEN = {
   closing: "それでも、次がある。",
 } as const;
 
-export const BUY = {
-  label: "BUY",
+/*
+ * SELL = お客様が「売る」= FORESIGHTが買い取る。
+ * BUY  = お客様が「買う」= FORESIGHTが販売する。
+ * 顧客目線の命名(NAVの表記と一致させる)。旧実装ではBUY/SELLの中身が
+ * 逆に割り当てられていたため、CEO確認のうえ入れ替えた。
+ */
+export const SELL = {
+  label: "SELL",
   index: "01",
   headline: ["走れなくても、", "終わりじゃない。"],
   /* 状態の断章。畳みかけるリズムで読ませる */
@@ -214,8 +220,8 @@ export const BUY = {
   cta: CTA.sell,
 } as const;
 
-export const SELL = {
-  label: "SELL",
+export const BUY = {
+  label: "BUY",
   index: "02",
   headline: ["必要な車を、", "必要な人へ。"],
   lead: ["ここにあるのは、在庫ではない。", "次のオーナーを待っている車だ。"],
@@ -229,8 +235,8 @@ export const SELL = {
   cta: CTA.find,
 } as const;
 
-export const AUCTION = {
-  /* セクション名はFIND。「探す」が事業実態で、AUCTIONは手段名にすぎない */
+/* 「探す」が事業実態で、オークション代行はその手段にすぎない */
+export const FIND = {
   label: "FIND",
   index: "03",
   headline: ["見つける。", "選ぶ。", "つなぐ。"],
