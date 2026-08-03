@@ -62,3 +62,7 @@ public/vehicle-master.png
 # scripts/intake-vehicle.mjs の入力にのみ使い、配信はしない。
 # 再変換に必要なので手元には残す。受け入れ手順は docs/asset-intake.md
 assets-src/
+
+# Blenderの中間成果物。配信するのは public/models/SUV.glb のみ。
+# vehicle-parts/ 配下の未圧縮GLBは96MBあり、リポジトリに入れない。
+public/images/foresight/vehicle-parts/*.glb

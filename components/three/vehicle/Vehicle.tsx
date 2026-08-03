@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
 import { vehicle as V } from "@/lib/tokens";
 import type { VehicleHandle } from "@/lib/vehicleRig";
 import VehiclePlaceholder from "./VehiclePlaceholder";
+import VehicleGLTF from "./VehicleGLTF";
+import ScanLine from "./ScanLine";
+import RouteLines from "./RouteLines";
 
 /*
  * 車両のルート。
@@ -28,7 +31,7 @@ import VehiclePlaceholder from "./VehiclePlaceholder";
  * スクロールが止まれば車も止まる、というCEO指示の実装上の要。
  */
 
-const USE_GLB = false;
+const USE_GLB = true;
 
 export default function Vehicle() {
   const handle = useRef<VehicleHandle>(null);
@@ -104,14 +107,23 @@ export default function Vehicle() {
     <group ref={root}>
       {USE_GLB ? (
         /*
-         * GLB到着後にここを有効化する。
-         * VehicleGLTF は VehiclePlaceholder と同じ handleRef を受け取り、
-         * 同じ VehicleHandle を返す契約。
+         * GLBの読み込み中は何も描かない(fallback={null})。
+         * ローディング画面は別に存在するので、ここでスピナーを
+         * 出すと二重になる。
          */
-        null
+        <Suspense fallback={null}>
+          <VehicleGLTF handleRef={handle} />
+        </Suspense>
       ) : (
         <VehiclePlaceholder handleRef={handle} />
       )}
+
+      {/*
+        車両に付随する光の演出。GLBに差し替えても、これらは
+        車両の子として同じように動く(モデル実装に依存しない)。
+      */}
+      <ScanLine />
+      <RouteLines />
     </group>
   );
 }

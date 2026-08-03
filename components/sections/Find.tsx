@@ -3,6 +3,7 @@
 import CtaButton from "@/components/ui/CtaButton";
 import SectionHead from "@/components/ui/SectionHead";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
+import { useVehicleSegment } from "@/hooks/useVehicleTimeline";
 import { REVEAL_TRIGGER } from "@/lib/motion";
 import { FIND } from "@/lib/content";
 
@@ -89,14 +90,24 @@ export default function Find() {
     );
   }, []);
 
+  /*
+   * 車両制御。区間定義は hooks/useVehicleTimeline.ts に集約してある。
+   * このセクションは「どの区間か」を宣言するだけで、車両の動きは知らない。
+   */
+  useVehicleSegment(scope, "find");
+
   return (
     <section
       ref={scope}
       id="find"
       aria-labelledby="find-heading"
-      className="section-y relative overflow-hidden"
+      className="section-y relative min-h-[180vh] overflow-hidden"
     >
-      <div className="container-x lg:pl-24">
+      {/*
+        区間を伸ばした分、コピーが画面外に置き去りにならないよう
+        sticky で留める。車両の演出が進む間ずっと同じ位置に在り続ける。
+      */}
+      <div className="container-x sticky top-[16vh] lg:pl-24">
         <SectionHead
           index={FIND.index}
           label={FIND.label}

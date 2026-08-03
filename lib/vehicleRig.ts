@@ -79,8 +79,8 @@ export const PIVOT = {
    * z は車体前端(-2.4)より僅かに前に出す。面と同一平面だと
    * Zファイティングで明滅し、内側だと車体に飲まれて見えない。
    */
-  headlightL: { x: -0.62, y: 0.78, z: -2.46 },
-  headlightR: { x: 0.62, y: 0.78, z: -2.46 },
+  headlightL: { x: -0.72, y: 0.8, z: -2.46 },
+  headlightR: { x: 0.72, y: 0.8, z: -2.46 },
 } as const;
 
 /**

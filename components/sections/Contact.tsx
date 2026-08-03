@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
+import { useVehicleSegment } from "@/hooks/useVehicleTimeline";
 import { REVEAL_TRIGGER } from "@/lib/motion";
 import { CONTACT } from "@/lib/content";
 
@@ -105,6 +106,12 @@ export default function Contact() {
       );
     }
   }
+
+  /*
+   * 車両制御。区間定義は hooks/useVehicleTimeline.ts に集約してある。
+   * このセクションは「どの区間か」を宣言するだけで、車両の動きは知らない。
+   */
+  useVehicleSegment(scope, "contact");
 
   return (
     <section

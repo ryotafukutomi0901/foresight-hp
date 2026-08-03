@@ -125,11 +125,11 @@ export default function VehiclePlaceholder({ handleRef }: Props) {
           前後の判別がつくシルエットになる。
         */}
         <mesh
-          position={[0, (BODY.hoodY + BODY.roofY) / 2, 0.62]}
+          position={[0, (BODY.hoodY + BODY.roofY) / 2, 0.78]}
           material={materials.body}
         >
           <boxGeometry
-            args={[BODY.width * 0.96, BODY.roofY - BODY.hoodY, BODY.length * 0.56]}
+            args={[BODY.width * 0.96, BODY.roofY - BODY.hoodY, BODY.length * 0.62]}
           />
         </mesh>
 
@@ -209,10 +209,10 @@ export default function VehiclePlaceholder({ handleRef }: Props) {
         */}
         <mesh
           ref={interior}
-          position={[0, BODY.hoodY + 0.22, halfL - 0.55]}
+          position={[0, BODY.hoodY + 0.28, halfL - 0.5]}
           material={materials.cargoLight}
         >
-          <boxGeometry args={[BODY.width * 0.78, 0.62, 0.85]} />
+          <boxGeometry args={[BODY.width * 0.7, 0.5, 0.7]} />
         </mesh>
 
         {/* ヘッドライト。左右独立 */}
