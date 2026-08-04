@@ -10,6 +10,7 @@ import VehiclePlaceholder from "./VehiclePlaceholder";
 import VehicleGLTF from "./VehicleGLTF";
 import ScanLine from "./ScanLine";
 import RouteLines from "./RouteLines";
+import RearGlow from "./RearGlow";
 
 /*
  * 車両のルート。
@@ -124,6 +125,7 @@ export default function Vehicle() {
       */}
       <ScanLine />
       <RouteLines />
+      <RearGlow />
     </group>
   );
 }

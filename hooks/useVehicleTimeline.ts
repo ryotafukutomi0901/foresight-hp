@@ -169,10 +169,18 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
       viewProgress.bodyZ = START.philosophy.z;
       viewProgress.wheelAngle = WHEEL.atRest;
 
-      /* ハッチはリアが見えてから開く。回転より遅らせるのが要 */
+      /*
+       * 光はリアが見えてから灯る。回転より遅らせるのが要。
+       *
+       * 当初は「リアハッチが開いて荷室から光が漏れる」だったが、
+       * 写実GLBに RearGate / Interior が存在しないため
+       * (docs/vehicle-glb-handoff.md §2)、車の後方が光る表現に
+       * 置き換えた。rearGateOpen は将来モデルに可動部が
+       * 加わったときのために書き続けている(無ければ無視される)。
+       */
       const gate = slice(p, V.philosophy.gateOpenStart, V.philosophy.gateOpenEnd);
       viewProgress.rearGateOpen = gate;
-      /* 光はハッチが開くのに僅かに遅れて滲む */
+      /* 二乗して立ち上がりを遅らせる。じわりと満ちる感じにする */
       viewProgress.cargoLightIntensity = gate * gate;
 
       camera(V.camera.hero, V.camera.philosophy, p);

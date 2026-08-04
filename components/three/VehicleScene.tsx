@@ -5,8 +5,15 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
-import { camera as CAM, lerp as LERP, bloom as BLOOM, vignette as VIG } from "@/lib/tokens";
+import {
+  camera as CAM,
+  lerp as LERP,
+  bloom as BLOOM,
+  vignette as VIG,
+  edges as EDGES,
+} from "@/lib/tokens";
 import Vehicle from "./vehicle/Vehicle";
+import Edges from "./effects/Edges";
 
 /*
  * VEHICLE SCENE — Hero〜Contactを貫く単一のCanvas。
@@ -142,11 +149,23 @@ export default function VehicleScene({ active = true }: { active?: boolean }) {
 
       {/*
         ポストプロセス。
-        Bloom はヘッドライトの発光を拾うために必須。
+
+        enableNormalPass は Edges のために必須。これが無いと
+        法線バッファが得られず、線が一切出ない。
+
+        順序も意味を持つ:
+          Edges(線を描く) → Bloom(その線を光らせる) → Vignette(締める)
+        Bloomを先に置くと、後から足した線が滲まず硬いままになる。
+
         DOF は入れない — 車両が主役で、常にピントが合っている
         べきだから(装飾のための被写界深度は付けない)。
       */}
-      <EffectComposer multisampling={0}>
+      <EffectComposer multisampling={0} enableNormalPass>
+        <Edges
+          normalThreshold={EDGES.normalThreshold}
+          depthThreshold={EDGES.depthThreshold}
+          strength={EDGES.strength}
+        />
         <Bloom
           intensity={BLOOM.intensity}
           luminanceThreshold={BLOOM.luminanceThreshold}
