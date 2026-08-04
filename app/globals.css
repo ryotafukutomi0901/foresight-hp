@@ -195,6 +195,55 @@
     mix-blend-mode: darken;
   }
 
+  /*
+   * ---- 章ごとの地 ----
+   *
+   * 全章が同じ黒だと、スクロールしていて章が変わったことに気づけない。
+   * Hero(#050506)から少しずつ持ち上げ、Buyで最も明るくし、
+   * Contactで再び沈める。物語の抑揚と地の明るさを一致させる。
+   *
+   * 段差を見せないために、各章の上端18%で前章の色から溶かす。
+   * 単色を敷くと境界が線として見えてしまう。
+   *
+   * 文字(#ededea)とのコントラストは最も明るい Buy(#131318)でも 15.5:1 で、
+   * WCAG AAA(7:1)を大きく上回る。
+   */
+  section[data-chapter] {
+    position: relative;
+    z-index: 1;
+    /*
+     * ネイティブのhashジャンプ用。
+     * ScrollSmootherは1024px未満で無効になり、その帯では
+     * ブラウザ標準のアンカー移動が使われる。scroll-margin が無いと
+     * 章の見出しが固定ヘッダーの下に潜る。
+     * (デスクトップ側は SmoothScrollProvider が数値で補正している)
+     */
+    scroll-margin-top: 5rem;
+  }
+
+  section[data-chapter="philosophy"] {
+    background: linear-gradient(180deg, #050506 0%, #0c0c0f 18%, #0c0c0f 100%);
+  }
+  section[data-chapter="sell"] {
+    background: linear-gradient(180deg, #0c0c0f 0%, #101014 18%, #101014 100%);
+  }
+  section[data-chapter="buy"] {
+    background: linear-gradient(180deg, #101014 0%, #131318 18%, #131318 100%);
+  }
+  section[data-chapter="find"] {
+    background: linear-gradient(180deg, #131318 0%, #0f0f13 18%, #0f0f13 100%);
+  }
+  /* 最後だけ下端も沈める。Footerの地(void)へ繋ぐため */
+  section[data-chapter="contact"] {
+    background: linear-gradient(
+      180deg,
+      #0f0f13 0%,
+      #08080a 18%,
+      #08080a 88%,
+      #050506 100%
+    );
+  }
+
   /* セクションの縦リズム */
   .section-y {
     padding-block: clamp(6rem, 14vh, 12rem);

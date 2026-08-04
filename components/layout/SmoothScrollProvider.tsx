@@ -60,7 +60,21 @@ export default function SmoothScrollProvider({
           if (!target) return;
 
           e.preventDefault();
-          smoother.scrollTo(target as HTMLElement, true, "top top");
+
+          /*
+           * ヘッダーの高さ分だけ手前で止める。
+           *
+           * "top top" だと着地点がちょうど画面上端になり、
+           * 固定ヘッダー(64/80px)の下に章の見出しが潜り込む。
+           *
+           * position文字列に "top 80px" を渡す書き方も試したが効かなかった
+           * (実測で着地点が0のまま)。offset() で座標を取り、
+           * そこから引いて数値で渡すほうが確実。
+           */
+          const header = document.querySelector("header");
+          const headerH = header ? header.getBoundingClientRect().height : 0;
+          const y = smoother.offset(target as HTMLElement, "top top") - headerH;
+          smoother.scrollTo(Math.max(0, y), true);
         };
 
         document.addEventListener("click", onClick);

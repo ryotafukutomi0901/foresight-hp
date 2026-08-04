@@ -1,8 +1,7 @@
 "use client";
 
 import CtaButton from "@/components/ui/CtaButton";
-import ChapterArt from "@/components/ui/ChapterArt";
-import SectionHead from "@/components/ui/SectionHead";
+import ChapterHead from "@/components/ui/ChapterHead";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { REVEAL_TRIGGER } from "@/lib/motion";
 import { FIND } from "@/lib/content";
@@ -93,16 +92,18 @@ export default function Find() {
   return (
     <section
       ref={scope}
+      data-chapter="find"
       id="find"
       aria-labelledby="find-heading"
       className="section-y relative overflow-hidden"
     >
-      <div className="container-x lg:pl-24">
-        <SectionHead
+      <div className="container-x">
+        <ChapterHead
           index={FIND.index}
           label={FIND.label}
           id="find-heading"
-          orientation="vertical"
+          plain={FIND.plain}
+          services={FIND.services}
         />
 
         {/* 走査線 */}
@@ -113,7 +114,10 @@ export default function Find() {
         />
 
         <div className="mt-16 grid gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-24">
-          <h2 className="text-display-l font-normal leading-[1.22] text-ink">
+          <h2
+            data-find-drift
+            className="text-display-l font-normal leading-[1.22] text-ink"
+          >
             {FIND.headline.map((line) => (
               <span key={line} className="line-mask">
                 <span data-find-line className="block">
@@ -141,37 +145,29 @@ export default function Find() {
           </div>
         </div>
 
-        {/*
-          次の旅へ向かう1枚を、結びの一行の背後に置く。
-          「探しに行く」の帰結が走り出す姿なので、
-          文字と絵が同じ画面に在るほうが結びが立つ。
-        */}
-        <div className="relative mt-24 sm:mt-32">
-          <ChapterArt
-            src="/images/foresight/vehicle-parts/10-next-journey-alpha.png"
-            from="left"
-            opacity={0.8}
-            parallax={5}
-            className="pointer-events-none absolute -top-[18%] right-0 w-[84%] max-w-[820px] lg:w-[60%]"
+        {/* 章の結び。Sellと同じ形に揃える(全幅の罫線 + 一行とCTAを横並び) */}
+        <div data-find-core className="mt-28 sm:mt-36">
+          <span
+            aria-hidden
+            className="mb-14 block h-px w-full bg-rule-strong"
           />
-
-        <div data-find-core className="relative z-10 max-w-[46rem]">
-          <p className="text-display-m font-normal leading-[1.25] text-ink">
-            {FIND.core.map((line) => (
-              <span key={line} className="line-mask">
-                <span data-find-core-line className="block">
-                  {line}
+          <div className="flex flex-col gap-12 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
+            <p className="text-display-l font-normal leading-[1.2] text-ink">
+              {FIND.core.map((line) => (
+                <span key={line} className="line-mask">
+                  <span data-find-core-line className="block">
+                    {line}
+                  </span>
                 </span>
-              </span>
-            ))}
-          </p>
+              ))}
+            </p>
 
-          <div className="mt-16">
-            <CtaButton href={FIND.cta.href} variant="secondary">
-              {FIND.cta.label}
-            </CtaButton>
+            <div className="shrink-0">
+              <CtaButton href={FIND.cta.href} variant="secondary">
+                {FIND.cta.label}
+              </CtaButton>
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </section>

@@ -102,23 +102,23 @@ export default function BrandMessage() {
   return (
     <section
       ref={scope}
+      data-chapter="philosophy"
       id="philosophy"
       aria-labelledby="philosophy-heading"
-      /* 章の前に大きく空ける。速度を落としてから読ませるための余白 */
-      className="relative overflow-hidden pb-40 pt-[40vh] lg:pb-56 lg:pt-[56vh]"
+      className="section-y relative overflow-hidden"
     >
       {/* 背後の線画。主張させず、地に沈める */}
       <div
         data-bm-art
         aria-hidden
-        className="pointer-events-none absolute right-[-8%] top-1/2 w-[70%] max-w-[860px] -translate-y-1/2 opacity-0 lg:right-[-3%] lg:w-[48%]"
+        className="pointer-events-none absolute right-[-10%] top-1/2 w-[86%] max-w-[1100px] -translate-y-1/2 opacity-0 lg:right-[-4%] lg:w-[62%]"
       >
         <Image
-          src="/images/foresight/vehicle-parts/02-suv-side-alpha.png"
+          src="/images/foresight/vehicle-parts/10-next-journey-alpha.png"
           alt=""
           width={1024}
           height={1024}
-          className="h-auto w-full opacity-40"
+          className="h-auto w-full opacity-30"
         />
       </div>
 
@@ -138,7 +138,7 @@ export default function BrandMessage() {
           見出しを sticky で留める。本文がその下を流れていく間、
           「何の話か」が視界から消えない。
         */}
-        <div className="mt-20 lg:sticky lg:top-[20vh]">
+        <div className="mt-14">
           <h2 className="font-latin text-display-l font-semibold leading-[1.05] tracking-[-0.01em] text-ink">
             {BRAND_MESSAGE.headline.split(" ").map((word) => (
               <span key={word} className="line-mask">
@@ -165,7 +165,7 @@ export default function BrandMessage() {
         */}
         <p
           data-bm-body
-          className="mt-[44vh] max-w-xl text-sm leading-[2.4] text-ink-soft lg:mt-[60vh]"
+          className="mt-14 max-w-xl text-sm leading-[2.4] text-ink-soft lg:mt-16"
         >
           {BRAND_MESSAGE.body}
         </p>

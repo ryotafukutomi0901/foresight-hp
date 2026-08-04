@@ -109,6 +109,7 @@ export default function Contact() {
   return (
     <section
       ref={scope}
+      data-chapter="contact"
       id="contact"
       aria-labelledby="contact-heading"
       className="section-y relative"

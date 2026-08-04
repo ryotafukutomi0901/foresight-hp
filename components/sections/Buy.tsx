@@ -1,8 +1,7 @@
 "use client";
 
 import CtaButton from "@/components/ui/CtaButton";
-import ChapterArt from "@/components/ui/ChapterArt";
-import SectionHead from "@/components/ui/SectionHead";
+import ChapterHead from "@/components/ui/ChapterHead";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { REVEAL_TRIGGER } from "@/lib/motion";
 import { BUY } from "@/lib/content";
@@ -55,19 +54,19 @@ export default function Buy() {
             "-=0.7",
           );
 
-        // 受け渡しの動き。デスクトップは横、モバイルは縦
-        gsap.from("[data-buy-step]", {
-          autoAlpha: 0,
-          x: desktop ? -48 : 0,
-          y: desktop ? 0 : 28,
-          duration: 1.0,
-          ease: "brandOut",
-          stagger: 0.18,
-          scrollTrigger: {
-            trigger: "[data-buy-steps]",
-            start: "top 82%",
-            once: true,
-          },
+        /*
+         * 積み重ねる各枚は、自分が画面に入るときに個別に立ち上がる。
+         * まとめてstaggerで出すと、下敷きになる枚まで先に animate され、
+         * 重なった状態で見えてしまう。
+         */
+        gsap.utils.toArray<HTMLElement>("[data-buy-step]").forEach((step) => {
+          gsap.from(step, {
+            autoAlpha: 0,
+            y: desktop ? 32 : 22,
+            duration: 0.9,
+            ease: "brandOut",
+            scrollTrigger: { trigger: step, start: "top 88%", once: true },
+          });
         });
       },
     );
@@ -76,16 +75,21 @@ export default function Buy() {
   return (
     <section
       ref={scope}
+      data-chapter="buy"
       id="buy"
       aria-labelledby="buy-heading"
       className="section-y relative"
     >
-      <div className="container-x lg:pl-24">
-        <SectionHead index={BUY.index} label={BUY.label} id="buy-heading"
-          orientation="vertical"
+      <div className="container-x">
+        <ChapterHead
+          index={BUY.index}
+          label={BUY.label}
+          id="buy-heading"
+          plain={BUY.plain}
+          services={BUY.services}
         />
 
-        <div className="mt-16 grid gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-24">
+        <div className="mt-20 grid gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-24">
           <h2 className="text-display-l font-normal leading-[1.22] text-ink">
             {BUY.headline.map((line) => (
               <span key={line} className="line-mask">
@@ -119,38 +123,40 @@ export default function Buy() {
           将来、実在庫を掲載する場合もここを拡張し、
           ポータル型の大量カードUIは採らない。
         */}
+        <div className="mt-20 sm:mt-24">
         {/*
-          整えられた一台の正面を、手順の背後に置く。
-          縦に積むと絵の分だけ空白が伸びるので重ねる。
-          「この一台をこう扱う」という関係が、重なりで伝わる。
-        */}
-        <div className="relative mt-24 sm:mt-28">
-          <ChapterArt
-            src="/images/foresight/vehicle-parts/03-front-face-alpha.png"
-            from="bottom"
-            opacity={0.72}
-            parallax={4}
-            className="pointer-events-none absolute -top-[52%] left-1/2 w-[92%] max-w-[820px] -translate-x-1/2 lg:w-[62%]"
-          />
+          手順を**stickyで積み重ねる**。
 
-        <ol
-          data-buy-steps
-          className="relative z-10 grid gap-px border border-rule bg-rule sm:grid-cols-3"
-        >
+          横に3枚並べると一目で終わってしまい、
+          「一台ずつ手をかけている」という話が伝わらない。
+          1枚ずつ画面に留まると、それぞれに滞在時間が生まれる。
+          リファレンス(izanami)のProjectsと同じ構造。
+        */}
+        <ol data-buy-steps className="relative z-10">
           {BUY.steps.map((step) => (
             <li
               key={step.n}
               data-buy-step
-              className="flex flex-col gap-4 bg-base p-8 sm:p-10"
+              className="sticky top-[22vh] border-t border-rule-strong bg-[#131318] pb-24 pt-10 sm:pb-32 sm:pt-12"
             >
-              <span className="label text-ink-faint">{step.n}</span>
-              <h3 className="text-display-s font-normal text-ink">{step.t}</h3>
-              <p className="text-sm leading-loose text-ink-soft">{step.d}</p>
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-baseline sm:gap-12">
+                <span className="label shrink-0 text-ink-faint">{step.n}</span>
+                <div>
+                  <h3 className="text-display-m font-normal text-ink">
+                    {step.t}
+                  </h3>
+                  <p className="mt-4 max-w-lg text-sm leading-[2.2] text-ink-soft">
+                    {step.d}
+                  </p>
+                </div>
+              </div>
             </li>
           ))}
         </ol>
 
-          <div className="relative z-10 mt-16">
+          {/* 章の結び。Sell/Findと同じく罫線を全幅に引いてから置く */}
+          <div className="mt-20">
+            <span aria-hidden className="mb-12 block h-px w-full bg-rule-strong" />
             <CtaButton href={BUY.cta.href} variant="secondary">
               {BUY.cta.label}
             </CtaButton>

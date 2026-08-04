@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import CtaButton from "@/components/ui/CtaButton";
-import { gsap, useScopedGsap } from "@/hooks/useGsap";
+import { gsap, useScopedGsap, ScrollTrigger } from "@/hooks/useGsap";
 import { onOpeningDone } from "@/lib/sequence";
 import HeroVideo from "./HeroVideo";
 import { CTA, HERO } from "@/lib/content";
@@ -31,9 +31,42 @@ import { heroGaze as G, lerp } from "@/lib/tokens";
  * そのままPhilosophy区間の開始値になる。リセットしない。
  */
 export default function Hero() {
-  const scope = useScopedGsap<HTMLElement>(() => {
+  const scope = useScopedGsap<HTMLElement>(({ scope }) => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
       .matches;
+
+    /*
+     * Hero区間だけスクロールをスナップさせる。
+     *
+     * ═══════════════════════════════════════════════════════════
+     *  「一スクロールでPhilosophyへ飛ぶ」の実装。
+     *
+     *  snapTo: [0, 1] は「Heroの先頭」か「Heroの終わり(=Philosophyの頭)」
+     *  のどちらかにしか止まらないという意味。途中で指を離しても、
+     *  近い方へ引き寄せられる。
+     *
+     *  Observerプラグインを足して自前でホイールを捌く手もあるが、
+     *  ScrollSmootherが既にスクロールを掌握しているので、
+     *  同じ系統(ScrollTrigger)の中で完結させたほうが競合しない。
+     * ═══════════════════════════════════════════════════════════
+     *
+     * reduced-motion では掛けない。意図しない自動スクロールは
+     * 前庭障害のある人にとって最も負担が大きい種類の動きなので。
+     */
+    if (!reduced) {
+      ScrollTrigger.create({
+        id: "hero-snap",
+        trigger: scope.current,
+        start: "top top",
+        end: "bottom top",
+        snap: {
+          snapTo: [0, 1],
+          duration: { min: 0.35, max: 0.7 },
+          delay: 0.06,
+          ease: "brandInOut",
+        },
+      });
+    }
 
     /*
      * コピーの出現。

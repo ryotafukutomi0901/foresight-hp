@@ -178,7 +178,12 @@ export default function Header() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="label text-ink-soft transition-colors duration-300 hover:text-ink"
+                  /*
+                   * .label は10px固定で、SectionHeadやFooterと共有している。
+                   * あちらを大きくすると章ラベルまで太るので、
+                   * ナビ側でだけサイズと字間を上書きする。
+                   */
+                  className="label text-[0.8125rem] tracking-[0.28em] text-ink-soft transition-colors duration-300 hover:text-ink"
                 >
                   {item.label}
                 </Link>
@@ -189,10 +194,10 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           <Link
-            href={CTA.sell.href}
-            className="hidden min-h-11 items-center bg-ink px-6 text-xs tracking-[0.14em] text-void transition-colors duration-300 hover:bg-ink-soft sm:inline-flex"
+            href={CTA.consult.href}
+            className="hidden min-h-11 items-center bg-ink px-6 text-sm tracking-[0.14em] text-void transition-colors duration-300 hover:bg-ink-soft sm:inline-flex"
           >
-            {CTA.sell.label}
+            {CTA.consult.label}
           </Link>
 
           <button
