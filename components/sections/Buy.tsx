@@ -1,9 +1,9 @@
 "use client";
 
 import CtaButton from "@/components/ui/CtaButton";
+import ChapterArt from "@/components/ui/ChapterArt";
 import SectionHead from "@/components/ui/SectionHead";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
-import { useVehicleSegment } from "@/hooks/useVehicleTimeline";
 import { REVEAL_TRIGGER } from "@/lib/motion";
 import { BUY } from "@/lib/content";
 
@@ -73,12 +73,6 @@ export default function Buy() {
     );
   }, []);
 
-  /*
-   * 車両制御。区間定義は hooks/useVehicleTimeline.ts に集約してある。
-   * このセクションは「どの区間か」を宣言するだけで、車両の動きは知らない。
-   */
-  useVehicleSegment(scope, "buy");
-
   return (
     <section
       ref={scope}
@@ -113,7 +107,7 @@ export default function Buy() {
             </p>
             <p
               data-buy-lead
-              className="mt-8 text-sm leading-loose text-ink-soft"
+              className="mt-8 text-sm leading-[2.2] text-ink-soft"
             >
               {BUY.body}
             </p>
@@ -125,9 +119,23 @@ export default function Buy() {
           将来、実在庫を掲載する場合もここを拡張し、
           ポータル型の大量カードUIは採らない。
         */}
+        {/*
+          整えられた一台の正面を、手順の背後に置く。
+          縦に積むと絵の分だけ空白が伸びるので重ねる。
+          「この一台をこう扱う」という関係が、重なりで伝わる。
+        */}
+        <div className="relative mt-24 sm:mt-28">
+          <ChapterArt
+            src="/images/foresight/vehicle-parts/03-front-face-alpha.png"
+            from="bottom"
+            opacity={0.72}
+            parallax={4}
+            className="pointer-events-none absolute -top-[52%] left-1/2 w-[92%] max-w-[820px] -translate-x-1/2 lg:w-[62%]"
+          />
+
         <ol
           data-buy-steps
-          className="mt-28 grid gap-px border border-rule bg-rule sm:grid-cols-3"
+          className="relative z-10 grid gap-px border border-rule bg-rule sm:grid-cols-3"
         >
           {BUY.steps.map((step) => (
             <li
@@ -142,10 +150,11 @@ export default function Buy() {
           ))}
         </ol>
 
-        <div className="mt-16">
-          <CtaButton href={BUY.cta.href} variant="secondary">
-            {BUY.cta.label}
-          </CtaButton>
+          <div className="relative z-10 mt-16">
+            <CtaButton href={BUY.cta.href} variant="secondary">
+              {BUY.cta.label}
+            </CtaButton>
+          </div>
         </div>
       </div>
     </section>

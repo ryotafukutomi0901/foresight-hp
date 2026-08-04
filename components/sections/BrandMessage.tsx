@@ -1,14 +1,25 @@
 "use client";
 
+import Image from "next/image";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
-import { useVehicleSegment } from "@/hooks/useVehicleTimeline";
 import { BRAND_MESSAGE } from "@/lib/content";
-import { scroll as SCROLL } from "@/lib/tokens";
 
 /*
- * BRAND MESSAGE — サービス説明ではなく「視点」の提示。
- * 余白と文字が主役。状態の列挙は仕様ではなく断章として、
- * 読み手に考える間を与える速度で1行ずつ置いていく。
+ * PHILOSOPHY — 事業説明の前に「視点」を置く章。
+ *
+ * ═══════════════════════════════════════════════════════════════
+ *  構造はリファレンス(izanami)の Philosophy に倣う。
+ *
+ *    ・見出しは画面に**貼り付いたまま**、本文だけが流れる
+ *    ・章の前に1画面分近い余白を取り、速度を落としてから読ませる
+ *    ・行間を広く取る(2.4倍)
+ *
+ *  貼り付けるのは装飾ではなく読ませ方の設計。見出しが残り続けると、
+ *  長い本文を読んでいる間も「何の話か」が視界から消えない。
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * 車両は線画を1枚だけ、本文の背後に沈めて置く。主張させない。
+ * ここは思想を語る章であって、車を見せる章ではない。
  */
 export default function BrandMessage() {
   const scope = useScopedGsap<HTMLElement>(({ scope }) => {
@@ -23,84 +34,95 @@ export default function BrandMessage() {
         if (ctx.conditions?.reduced) return;
 
         /*
-         * コピーの出現は**荷室の光に連動**させる。
-         *
-         * scrubで車両の回転・ハッチ開放と同じ進行度に乗せることで、
-         * 「リアが見える → ハッチが開く → 光が漏れる → その光の中から
-         * 文字が現れる」という因果が画面上で繋がる。
-         * 時間駆動(once)にすると、車がまだ回りきる前に文字だけが
-         * 出てしまい、車が語っているように見えない。
-         *
-         * 区間は車両制御(useVehicleSegment)と同じ範囲を指すが、
-         * 書き込む対象がDOM(こちら)とviewProgress(あちら)で
-         * 完全に分かれているため責務は重複しない。
+         * 見出しの出現。単語ごとにマスクを解く。
+         * 全体を一度に出すより、読む速度に近い速さで現れるほうが
+         * 「読ませる」という意図に合う。
          */
         gsap
           .timeline({
             scrollTrigger: {
               trigger: scope.current,
-              /*
-               * 車両制御(useVehicleSegment)のpin区間と同じ範囲。
-               * ここがズレると、車の回転と文字の出現が食い違う。
-               */
-              start: "top top",
-              end: SCROLL.vehiclePin.philosophy,
-              scrub: 1,
+              start: "top 72%",
+              once: true,
             },
           })
-          /* ハッチが開き始める頃(進行度0.55)まで、文字は伏せたまま */
-          .to({}, { duration: 0.55 })
           .from("[data-bm-rule]", {
             scaleX: 0,
             transformOrigin: "left center",
-            duration: 0.12,
-            ease: "none",
+            duration: 1.4,
+            ease: "brandInOut",
           })
           .from(
             "[data-bm-word]",
-            {
-              yPercent: 110,
-              duration: 0.2,
-              ease: "none",
-              stagger: 0.04,
-            },
-            "<",
+            { yPercent: 110, duration: 1.15, ease: "brandOut", stagger: 0.1 },
+            "-=1.1",
           )
           .from(
             "[data-bm-sub]",
-            { autoAlpha: 0, y: 22, duration: 0.15, ease: "none" },
-            "-=0.08",
+            { autoAlpha: 0, y: 24, duration: 1.0, ease: "brandOut" },
+            "-=0.6",
           );
 
         gsap.from("[data-bm-body]", {
           autoAlpha: 0,
-          y: 20,
-          duration: 1.1,
+          y: 22,
+          duration: 1.2,
           ease: "brandOut",
           scrollTrigger: {
             trigger: "[data-bm-body]",
-            start: "top 88%",
+            start: "top 86%",
             once: true,
           },
         });
+
+        /*
+         * 背後の線画。スクロールに合わせてゆっくり浮上する。
+         * 移動量を小さく取り、視差として感じる程度に留める。
+         * 大きく動かすと「動く背景」になり、文章から目が逸れる。
+         */
+        gsap.fromTo(
+          "[data-bm-art]",
+          { yPercent: 7, autoAlpha: 0 },
+          {
+            yPercent: -7,
+            autoAlpha: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: scope.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 1,
+            },
+          },
+        );
       },
     );
   }, []);
-
-  /*
-   * 車両制御。区間定義は hooks/useVehicleTimeline.ts に集約してある。
-   * このセクションは「どの区間か」を宣言するだけで、車両の動きは知らない。
-   */
-  useVehicleSegment(scope, "philosophy");
 
   return (
     <section
       ref={scope}
       id="philosophy"
       aria-labelledby="philosophy-heading"
-      className="section-y relative"
+      /* 章の前に大きく空ける。速度を落としてから読ませるための余白 */
+      className="relative overflow-hidden pb-40 pt-[40vh] lg:pb-56 lg:pt-[56vh]"
     >
-      <div className="container-x">
+      {/* 背後の線画。主張させず、地に沈める */}
+      <div
+        data-bm-art
+        aria-hidden
+        className="pointer-events-none absolute right-[-8%] top-1/2 w-[70%] max-w-[860px] -translate-y-1/2 opacity-0 lg:right-[-3%] lg:w-[48%]"
+      >
+        <Image
+          src="/images/foresight/vehicle-parts/02-suv-side-alpha.png"
+          alt=""
+          width={1024}
+          height={1024}
+          className="h-auto w-full opacity-40"
+        />
+      </div>
+
+      <div className="container-x relative z-10">
         <div className="flex items-center gap-5">
           <span id="philosophy-heading" className="label text-ink">
             {BRAND_MESSAGE.label}
@@ -112,29 +134,38 @@ export default function BrandMessage() {
           />
         </div>
 
-        {/* 大型ラテン。単語ごとにマスクを解いていく */}
-        <h2 className="mt-16 font-latin text-display-l font-semibold leading-[1.05] tracking-[-0.01em] text-ink">
-          {BRAND_MESSAGE.headline.split(" ").map((word) => (
-            <span key={word} className="line-mask">
-              <span data-bm-word className="block">
-                {word}
+        {/*
+          見出しを sticky で留める。本文がその下を流れていく間、
+          「何の話か」が視界から消えない。
+        */}
+        <div className="mt-20 lg:sticky lg:top-[20vh]">
+          <h2 className="font-latin text-display-l font-semibold leading-[1.05] tracking-[-0.01em] text-ink">
+            {BRAND_MESSAGE.headline.split(" ").map((word) => (
+              <span key={word} className="line-mask">
+                <span data-bm-word className="block">
+                  {word}
+                </span>
               </span>
-            </span>
-          ))}
-        </h2>
+            ))}
+          </h2>
 
-        <p
-          data-bm-sub
-          className="mt-12 max-w-lg text-body-l leading-loose text-ink-soft"
-        >
-          {BRAND_MESSAGE.sub[0]}
-          <br />
-          {BRAND_MESSAGE.sub[1]}
-        </p>
+          <p
+            data-bm-sub
+            className="mt-12 max-w-lg text-body-l leading-loose text-ink-soft"
+          >
+            {BRAND_MESSAGE.sub[0]}
+            <br />
+            {BRAND_MESSAGE.sub[1]}
+          </p>
+        </div>
 
+        {/*
+          本文。見出しが留まっている間にこれが流れてくる。
+          行間2.4倍は読む速度そのものを落とすための値。
+        */}
         <p
           data-bm-body
-          className="mt-24 max-w-xl text-sm leading-loose text-ink-soft"
+          className="mt-[44vh] max-w-xl text-sm leading-[2.4] text-ink-soft lg:mt-[60vh]"
         >
           {BRAND_MESSAGE.body}
         </p>

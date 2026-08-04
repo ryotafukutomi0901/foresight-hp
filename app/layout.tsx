@@ -6,7 +6,6 @@ import Footer from "@/components/layout/Footer";
 import SmoothScrollProvider from "@/components/layout/SmoothScrollProvider";
 import OpeningSequence from "@/components/opening/OpeningSequence";
 import AtmosphereMount from "@/components/three/AtmosphereMount";
-import VehicleSceneMount from "@/components/three/VehicleSceneMount";
 import "./globals.css";
 
 /*
@@ -134,7 +133,6 @@ export default function RootLayout({
              セクションを抜けたときにアンマウントされ、
              「車両がセクションごとに作り直される」ことになる。
         */}
-        <VehicleSceneMount />
         <Header />
         <SmoothScrollProvider>
           <main id="main" className="relative z-10">

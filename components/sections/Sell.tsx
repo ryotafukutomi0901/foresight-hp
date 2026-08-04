@@ -1,9 +1,9 @@
 "use client";
 
 import CtaButton from "@/components/ui/CtaButton";
+import ChapterArt from "@/components/ui/ChapterArt";
 import SectionHead from "@/components/ui/SectionHead";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
-import { useVehicleSegment } from "@/hooks/useVehicleTimeline";
 import { REVEAL_TRIGGER } from "@/lib/motion";
 import { SELL } from "@/lib/content";
 
@@ -103,12 +103,6 @@ export default function Sell() {
     );
   }, []);
 
-  /*
-   * 車両制御。区間定義は hooks/useVehicleTimeline.ts に集約してある。
-   * このセクションは「どの区間か」を宣言するだけで、車両の動きは知らない。
-   */
-  useVehicleSegment(scope, "sell");
-
   return (
     <section
       ref={scope}
@@ -147,33 +141,51 @@ export default function Sell() {
             </ul>
             <p
               data-sell-body
-              className="mt-8 text-sm leading-loose text-ink-soft"
+              className="mt-8 text-sm leading-[2.2] text-ink-soft"
             >
               {SELL.body}
             </p>
           </div>
         </div>
 
-        {/* 中核の一行。前後に大きな余白を取り、単独で立たせる */}
-        <div data-sell-core className="mt-32 sm:mt-44">
-          <span
-            data-sell-core-rule
-            aria-hidden
-            className="mb-12 block h-px w-full origin-left bg-rule-strong"
-          />
-          <p className="text-display-l font-normal leading-[1.2] text-ink">
-            {SELL.core.map((line) => (
-              <span key={line} className="line-mask">
-                <span data-sell-core-line className="block">
-                  {line}
-                </span>
-              </span>
-            ))}
-          </p>
-          <p className="mt-10 text-body-l text-ink-soft">{SELL.bridge}</p>
+        {/*
+          ここから先は**絵とテキストを重ねる**。
 
-          <div className="mt-14">
-            <CtaButton href={SELL.cta.href}>{SELL.cta.label}</CtaButton>
+          縦に積むと、絵の分だけ空白が伸びて画面に何も無い区間が
+          できる(実測: 1画面丸ごと空になった)。重ねれば、絵は
+          文章の背後で「状態」を語り続けたまま、読む速度は落ちない。
+        */}
+        <div className="relative mt-24 sm:mt-32">
+          {/* 動かない車。断章(不動車・事故車…)を絵で受け止める */}
+          <ChapterArt
+            src="/images/foresight/vehicle-parts/06-damaged-alpha.png"
+            from="left"
+            opacity={0.8}
+            parallax={5}
+            className="pointer-events-none absolute top-[-4%] right-[-6%] w-[80%] max-w-[760px] lg:w-[60%]"
+          />
+
+          {/* 中核の一行。絵の手前に立てる */}
+          <div data-sell-core className="relative z-10 max-w-[46rem]">
+            <span
+              data-sell-core-rule
+              aria-hidden
+              className="mb-12 block h-px w-full origin-left bg-rule-strong"
+            />
+            <p className="text-display-l font-normal leading-[1.2] text-ink">
+              {SELL.core.map((line) => (
+                <span key={line} className="line-mask">
+                  <span data-sell-core-line className="block">
+                    {line}
+                  </span>
+                </span>
+              ))}
+            </p>
+            <p className="mt-10 text-body-l text-ink-soft">{SELL.bridge}</p>
+
+            <div className="mt-16">
+              <CtaButton href={SELL.cta.href}>{SELL.cta.label}</CtaButton>
+            </div>
           </div>
         </div>
       </div>

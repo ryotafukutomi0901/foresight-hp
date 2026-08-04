@@ -1,9 +1,9 @@
 "use client";
 
 import CtaButton from "@/components/ui/CtaButton";
+import ChapterArt from "@/components/ui/ChapterArt";
 import SectionHead from "@/components/ui/SectionHead";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
-import { useVehicleSegment } from "@/hooks/useVehicleTimeline";
 import { REVEAL_TRIGGER } from "@/lib/motion";
 import { FIND } from "@/lib/content";
 
@@ -90,12 +90,6 @@ export default function Find() {
     );
   }, []);
 
-  /*
-   * 車両制御。区間定義は hooks/useVehicleTimeline.ts に集約してある。
-   * このセクションは「どの区間か」を宣言するだけで、車両の動きは知らない。
-   */
-  useVehicleSegment(scope, "find");
-
   return (
     <section
       ref={scope}
@@ -140,14 +134,28 @@ export default function Find() {
             </p>
             <p
               data-find-body
-              className="mt-8 text-sm leading-loose text-ink-soft"
+              className="mt-8 text-sm leading-[2.2] text-ink-soft"
             >
               {FIND.body}
             </p>
           </div>
         </div>
 
-        <div data-find-core className="mt-32 sm:mt-40">
+        {/*
+          次の旅へ向かう1枚を、結びの一行の背後に置く。
+          「探しに行く」の帰結が走り出す姿なので、
+          文字と絵が同じ画面に在るほうが結びが立つ。
+        */}
+        <div className="relative mt-24 sm:mt-32">
+          <ChapterArt
+            src="/images/foresight/vehicle-parts/10-next-journey-alpha.png"
+            from="left"
+            opacity={0.8}
+            parallax={5}
+            className="pointer-events-none absolute -top-[18%] right-0 w-[84%] max-w-[820px] lg:w-[60%]"
+          />
+
+        <div data-find-core className="relative z-10 max-w-[46rem]">
           <p className="text-display-m font-normal leading-[1.25] text-ink">
             {FIND.core.map((line) => (
               <span key={line} className="line-mask">
@@ -158,11 +166,12 @@ export default function Find() {
             ))}
           </p>
 
-          <div className="mt-14">
+          <div className="mt-16">
             <CtaButton href={FIND.cta.href} variant="secondary">
               {FIND.cta.label}
             </CtaButton>
           </div>
+        </div>
         </div>
       </div>
     </section>

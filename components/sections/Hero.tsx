@@ -4,8 +4,7 @@ import { useEffect } from "react";
 import CtaButton from "@/components/ui/CtaButton";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { onOpeningDone } from "@/lib/sequence";
-import { viewProgress, vehicleSection } from "@/lib/viewProgress";
-import { vehicle as V } from "@/lib/tokens";
+import HeroVideo from "./HeroVideo";
 import { CTA, HERO } from "@/lib/content";
 import { heroGaze as G, lerp } from "@/lib/tokens";
 
@@ -37,157 +36,29 @@ export default function Hero() {
       .matches;
 
     /*
-     * 車両の初期状態。画面右の暗闇に、シルエットだけが居る。
-     * reduced-motion では3D自体が起動しないが、値は最終状態に
-     * しておく(静止画的に「停止した車」の状態で辻褄を合わせる)。
+     * コピーの出現。
+     *
+     * 車の動きは背景の映像(HeroVideo)が持っているので、ここは
+     * 「映像のどこでテキストが現れるか」だけを決める。
+     * 映像は 約2.6秒で停止し、その後ヘッドライトが灯る。
+     * テキストはその光に合わせて現れる。
      */
-    if (reduced) {
-      viewProgress.bodyX = V.hero.toX;
-      viewProgress.bodyZ = V.hero.toZ;
-      viewProgress.bodyRotationY = V.hero.toRotationY;
-      viewProgress.headlightIntensity = 1;
-      /* 静止画として辻褄が合う姿勢。傾かず、ハンドルは正面 */
-      viewProgress.steerAngle = 0;
-      viewProgress.bodyRoll = 0;
-      viewProgress.bodyPitch = 0;
-      viewProgress.cameraX = V.camera.hero.x;
-      viewProgress.cameraY = V.camera.hero.y;
-      viewProgress.cameraZ = V.camera.hero.z;
-      viewProgress.lookAtY = V.camera.hero.lookY;
-    } else {
-      viewProgress.bodyX = V.hero.fromX;
-      viewProgress.bodyZ = V.hero.fromZ;
-      viewProgress.bodyRotationY = V.hero.fromRotationY;
-      viewProgress.headlightIntensity = 0;
-      viewProgress.cameraX = V.camera.hero.x;
-      viewProgress.cameraY = V.camera.hero.y;
-      viewProgress.cameraZ = V.camera.hero.z;
-      viewProgress.lookAtY = V.camera.hero.lookY;
-    }
-    vehicleSection.current = "hero";
-
     const tl = gsap.timeline({ id: "hero-intro", paused: !reduced });
 
-    if (!reduced) {
-      /*
-       * ── 1〜2. 走行 → 3/4ビューで停止 ──
-       * 位置と角度を同時に動かす。ease は最後に減速する brandOut で、
-       * 「ブレーキをかけながら停まる」挙動になる。
-       */
-      tl.to(
-        viewProgress,
-        {
-          bodyX: V.hero.toX,
-          bodyZ: V.hero.toZ,
-          bodyRotationY: V.hero.toRotationY,
-          duration: V.hero.driveDuration,
-          ease: "brandOut",
-        },
-        0,
-      );
-
-      /*
-       * 走行中はタイヤが回る。停止と同時に回転も止まる。
-       * ここは Hero 区間なので時間ベースで良い(唯一の例外)。
-       * 角度は累積させ、Philosophy以降はスクロールが引き継ぐ。
-       */
-      tl.to(
-        viewProgress,
-        {
-          wheelAngle: Math.PI * 4,
-          duration: V.hero.driveDuration,
-          ease: "brandOut",
-        },
-        0,
-      );
-
-      /*
-       * ── 2.5. 転舵と制動 ──
-       *
-       * 右から入ってきて、こちらへ向き直りながら停まる動き。
-       * その間ハンドルは切れている。停止と同時に正面へ戻し、
-       * ブレーキで前へ沈み込む。
-       *
-       * ここだけは時間ベースで良い(Hero はサイト唯一の自動再生)。
-       * 以降の区間は全てスクロール位置から姿勢を決めている。
-       */
-      tl.fromTo(
-        viewProgress,
-        { steerAngle: -V.posture.steerMax, bodyRoll: V.posture.rollPerSteer * V.posture.steerMax },
-        {
-          steerAngle: 0,
-          bodyRoll: 0,
-          duration: V.hero.driveDuration,
-          ease: "brandOut",
-        },
-        0,
-      );
-
-      /* 制動によるノーズダイブ。沈んで、水平に戻る */
-      tl.to(
-        viewProgress,
-        {
-          bodyPitch: V.posture.brakePitch,
-          duration: V.hero.dipDuration / 2,
-          ease: "power2.out",
-          yoyo: true,
-          repeat: 1,
-        },
-        V.hero.driveDuration - 0.2,
-      );
-
-      /*
-       * ── 3. サスペンションの沈み込み ──
-       * 停止の瞬間に一度だけ沈んで戻る。yoyo で往復させる。
-       */
-      tl.to(
-        viewProgress,
-        {
-          suspensionDip: 1,
-          duration: V.hero.dipDuration / 2,
-          ease: "power2.out",
-          yoyo: true,
-          repeat: 1,
-        },
-        V.hero.driveDuration - 0.12,
-      );
-
-      /*
-       * ── 4. ヘッドライト点灯 ──
-       * 停止してから灯る。じわりと立ち上げる。
-       */
-      tl.to(
-        viewProgress,
-        {
-          headlightIntensity: 1,
-          duration: V.hero.headlightDuration,
-          ease: "power2.inOut",
-        },
-        V.hero.driveDuration + 0.1,
-      );
-    }
-
-    /*
-     * ── 5. コピーの出現 ──
-     * ヘッドライトが灯り「光がコピーを照らす」タイミングに重ねる。
-     * 車両が主役なので、テキストは車の演出に従属させる
-     * (CEO指示「テキストは車両演出を補完する役割」)。
-     */
-    const copyAt = reduced ? 0 : V.hero.driveDuration + 0.45;
-
-    tl.from(
-      "[data-hero-line]",
-      { yPercent: 115, duration: 1.15, ease: "brandOut", stagger: 0.1 },
-      copyAt,
-    )
+    tl.from("[data-hero-en]", {
+      autoAlpha: 0,
+      y: 12,
+      duration: 0.9,
+      ease: "brandOut",
+    }, reduced ? 0 : 2.2)
       .from(
-        "[data-hero-en]",
-        { autoAlpha: 0, y: 14, duration: 0.9, ease: "brandOut" },
-        "-=0.85",
+        "[data-hero-line]",
+        { yPercent: 110, duration: 1.2, ease: "brandOut", stagger: 0.12 },
+        "-=0.5",
       )
       .from(
         "[data-hero-sub]",
-        { autoAlpha: 0, y: 20, duration: 0.9, ease: "brandOut" },
+        { autoAlpha: 0, y: 20, duration: 1.0, ease: "brandOut" },
         "-=0.7",
       )
       .from(
@@ -246,11 +117,10 @@ export default function Hero() {
       className="relative flex min-h-[100svh] w-full items-center overflow-hidden pb-24 pt-32"
     >
       {/*
-        背景に絵を置かない。車両は layout 直下の VehicleScene(3D)が
-        描いており、このセクションはその上にテキストを重ねるだけ。
-        セクションごとに車両を持たないことで、Hero→Philosophyの
-        繋ぎ目が生まれない。
+        背景の映像。車が右から走ってきて停まり、ライトが灯る。
+        テキストはこの上に重なる(z-10)。
       */}
+      <HeroVideo />
       <div className="container-x relative z-10">
         <div className="lg:max-w-[52%]">
           <p data-hero-en className="label text-ink-faint">
