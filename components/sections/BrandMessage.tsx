@@ -3,6 +3,7 @@
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { useVehicleSegment } from "@/hooks/useVehicleTimeline";
 import { BRAND_MESSAGE } from "@/lib/content";
+import { scroll as SCROLL } from "@/lib/tokens";
 
 /*
  * BRAND MESSAGE — サービス説明ではなく「視点」の提示。
@@ -38,9 +39,12 @@ export default function BrandMessage() {
           .timeline({
             scrollTrigger: {
               trigger: scope.current,
-              /* 車両制御(useVehicleSegment)と同じ範囲。進行度を一致させる */
-              start: "top 80%",
-              end: "bottom 20%",
+              /*
+               * 車両制御(useVehicleSegment)のpin区間と同じ範囲。
+               * ここがズレると、車の回転と文字の出現が食い違う。
+               */
+              start: "top top",
+              end: SCROLL.vehiclePin.philosophy,
               scrub: 1,
             },
           })
@@ -94,22 +98,9 @@ export default function BrandMessage() {
       ref={scope}
       id="philosophy"
       aria-labelledby="philosophy-heading"
-      /*
-       * この区間だけ縦を長く取る。車が半周回り、リアハッチが開き、
-       * 荷室の光からコピーが現れるまでを収める必要があるため。
-       * 通常の section-y だと実測でハッチが8%しか開かず、
-       * リアビューにも到達しないまま次区間へ渡ってしまった。
-       */
-      className="section-y relative min-h-[220vh]"
+      className="section-y relative"
     >
-      {/*
-        コピーを画面内に留める。
-        区間を220vhに伸ばしたことで、通常フローだとテキストが
-        最上部に置き去りになり、車が回っている間ずっと画面外にある。
-        sticky にすると、車の演出が進む間ずっと同じ位置に文字が在り、
-        「車が語っている」構図が保たれる。
-      */}
-      <div className="container-x sticky top-[18vh]">
+      <div className="container-x">
         <div className="flex items-center gap-5">
           <span id="philosophy-heading" className="label text-ink">
             {BRAND_MESSAGE.label}

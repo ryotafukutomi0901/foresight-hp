@@ -114,13 +114,9 @@ export default function Sell() {
       ref={scope}
       id="sell"
       aria-labelledby="sell-heading"
-      className="section-y relative min-h-[180vh]"
+      className="section-y relative"
     >
-      {/*
-        区間を伸ばした分、コピーが画面外に置き去りにならないよう
-        sticky で留める。車両の演出が進む間ずっと同じ位置に在り続ける。
-      */}
-      <div className="container-x sticky top-[16vh] lg:pl-24">
+      <div className="container-x lg:pl-24">
         <SectionHead index={SELL.index} label={SELL.label} id="sell-heading"
           orientation="vertical"
         />

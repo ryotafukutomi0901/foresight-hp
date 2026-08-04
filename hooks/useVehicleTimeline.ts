@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { viewProgress, vehicleSection, type VehicleSection } from "@/lib/viewProgress";
-import { vehicle as V } from "@/lib/tokens";
+import { vehicle as V, scroll as SCROLL } from "@/lib/tokens";
 
 /*
  * 車両制御ScrollTriggerの唯一の生成点。
@@ -84,6 +84,35 @@ const START = {
   },
 } as const;
 
+/** タイヤ半径(m)。走行距離を回転角に変換するのに使う */
+const WHEEL_RADIUS = 0.35;
+
+/*
+ * タイヤの累積回転角。
+ *
+ * ═══════════════════════════════════════════════════════════════
+ *  区間をまたぐ唯一の累積量なので、繋ぎを明示的に定義する。
+ *
+ *  各区間が独立に「0から」始めると、境界で角度が飛ぶ。
+ *  実測では Sell終了(-1.71rad)から Find開始(0)へ約98度ジャンプしていた。
+ *  停止中の車のタイヤが突然回るのは、静止画で見ても分かる破綻。
+ * ═══════════════════════════════════════════════════════════════
+ */
+const WHEEL = {
+  /*
+   * 停止時の基準角。
+   * Heroは 4π まで回して終わるが、4π ≡ 0 (mod 2π) なので
+   * 見た目は同一。ここを0にしておくと以降の計算が素直になる。
+   */
+  atRest: 0,
+  /** Sellで advanceZ だけ前進した分 */
+  sellEnd: V.sell.advanceZ / WHEEL_RADIUS,
+  /** Findで走った分を足した終端 */
+  findEnd: V.sell.advanceZ / WHEEL_RADIUS + V.find.wheelSpin,
+  /** Contactで惰性が抜けるまでに余分に回る角度 */
+  coast: Math.PI * 1.2,
+} as const;
+
 /*
  * Buy区間の周回が終わった時点のカメラ位置。
  * Find区間の開始値として使い、区間の継ぎ目でカメラが飛ばないようにする。
@@ -131,6 +160,15 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
         p,
       );
 
+      /*
+       * この区間で車は回るだけで動かない。位置とタイヤを明示的に
+       * 押さえておくと、Sellから逆スクロールで戻ってきたときに
+       * 前区間が書いた値が残らない。
+       */
+      viewProgress.bodyX = START.philosophy.x;
+      viewProgress.bodyZ = START.philosophy.z;
+      viewProgress.wheelAngle = WHEEL.atRest;
+
       /* ハッチはリアが見えてから開く。回転より遅らせるのが要 */
       const gate = slice(p, V.philosophy.gateOpenStart, V.philosophy.gateOpenEnd);
       viewProgress.rearGateOpen = gate;
@@ -164,7 +202,7 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
 
       /* 前進した分だけタイヤも回る。距離と回転を一致させる */
       viewProgress.wheelAngle =
-        (viewProgress.bodyZ - START.sell.z) / 0.35;
+        WHEEL.atRest + (viewProgress.bodyZ - START.sell.z) / WHEEL_RADIUS;
 
       viewProgress.scanProgress = slice(p, V.sell.scanStart, V.sell.scanEnd);
 
@@ -180,7 +218,19 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
   buy: {
     scrub: 1,
     apply(p) {
+      /*
+       * この区間は**カメラだけが動く**。車体は静止したまま。
+       * 静止しているからこそ、位置・角度・タイヤ・ハッチを
+       * すべて明示的に押さえる必要がある。書かずに放置すると、
+       * 逆スクロールで戻ったとき次区間(Find)が書いた値が残り、
+       * 止まっているはずの車のタイヤが回った状態になる(実測)。
+       */
+      viewProgress.bodyX = START.buy.x;
+      viewProgress.bodyZ = START.buy.z;
       viewProgress.bodyRotationY = START.buy.rotationY;
+      viewProgress.wheelAngle = WHEEL.sellEnd;
+      viewProgress.rearGateOpen = 0;
+      viewProgress.routeLineProgress = 0;
 
       /*
        * カメラを円弧上で動かす。camera() を使わないのは、
@@ -199,8 +249,6 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
       viewProgress.lookAtY = V.camera.buy.lookY;
       /* camera() を経由しないので、注視点の奥行きは自分で戻す */
       viewProgress.lookAtZ = 0;
-
-      viewProgress.scanProgress = 0;
     },
   },
 
@@ -222,7 +270,7 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
        * 角度そのものを progress から与える。ここで delta を積分すると
        * スクロールを止めてもタイヤが回り続けてしまう(禁止事項)。
        */
-      viewProgress.wheelAngle = p * V.find.wheelSpin;
+      viewProgress.wheelAngle = WHEEL.sellEnd + p * V.find.wheelSpin;
 
       viewProgress.routeLineProgress = p;
 
@@ -264,9 +312,13 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
         p,
       );
 
-      /* タイヤは車体が停まりきる手前で止まる。惰性が抜ける感じを出す */
-      const roll = 1 - slice(p, 0, V.contact.wheelStopAt);
-      viewProgress.wheelAngle = V.find.wheelSpin + roll * Math.PI * 1.2;
+      /*
+       * タイヤは車体が停まりきる手前で止まる。惰性が抜ける感じ。
+       * Find終端の角度から**さらに足す**方向にしないと、
+       * 区間の入口で角度が巻き戻って逆回転して見える。
+       */
+      viewProgress.wheelAngle =
+        WHEEL.findEnd + slice(p, 0, V.contact.wheelStopAt) * WHEEL.coast;
 
       /* ライトは最後に落ちる。消えきると輪郭だけが残る */
       viewProgress.headlightIntensity = 1 - slice(p, 0.35, V.contact.lightOutAt);
@@ -285,17 +337,45 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
   },
 };
 
+/*
+ * 区間ごとのスクロール範囲。
+ *
+ * ═══════════════════════════════════════════════════════════════
+ *  pin する区間としない区間
+ *
+ *  車両が大きく動く4区間はセクションごと画面に固定し、
+ *  その間のスクロールを車両アニメーションに充てる。
+ *  固定しないと、セクションの縦を伸ばした分だけコピーが
+ *  上に流れ去り、車だけが動く画面になる(実測で確認)。
+ *
+ *  Contactだけは固定しない。フォームを画面に貼り付けると
+ *  送信するまでページが先に進めなくなる。
+ * ═══════════════════════════════════════════════════════════════
+ */
+const SEGMENT_SCROLL: Record<
+  Exclude<VehicleSection, "hero">,
+  { start: string; end: string; pin: boolean }
+> = {
+  philosophy: { start: "top top", end: SCROLL.vehiclePin.philosophy, pin: true },
+  sell: { start: "top top", end: SCROLL.vehiclePin.sell, pin: true },
+  buy: { start: "top top", end: SCROLL.vehiclePin.buy, pin: true },
+  find: { start: "top top", end: SCROLL.vehiclePin.find, pin: true },
+  /* 固定しないので、セクションが画面を通過する間を範囲にする */
+  contact: { start: "top bottom", end: "bottom bottom", pin: false },
+};
+
 /**
  * セクションのルート要素に、その区間の車両制御を紐づける。
  *
+ * pin もこのフックが行う。セクションごとにScrollTriggerを1つに
+ * 保つことで、「同じ状態を別のトリガーが書く」状況を作らない。
+ *
  * @param ref     セクションのルート(ScrollTriggerのtriggerになる)
  * @param section どの区間か
- * @param options end を上書きしたい場合(pin区間など)
  */
 export function useVehicleSegment(
   ref: React.RefObject<HTMLElement | null>,
   section: Exclude<VehicleSection, "hero">,
-  options?: { start?: string; end?: string },
 ) {
   useEffect(() => {
     const el = ref.current;
@@ -308,23 +388,19 @@ export function useVehicleSegment(
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const config = SEGMENTS[section];
+    const range = SEGMENT_SCROLL[section];
 
     const st = ScrollTrigger.create({
       id: `vehicle-${section}`,
       trigger: el,
+      start: range.start,
+      end: range.end,
+      pin: range.pin,
       /*
-       * 区間は「セクションが画面を占めている間」に限定する。
-       *
-       * "top bottom"〜"bottom top" にすると、セクションが画面に
-       * 入る前から進行が始まり、前後の区間と重なる。実測では
-       * Sellの回転が終わらないうちにBuyが車体角度を上書きし、
-       * Sellのスキャンが一度も発火しなかった。
-       *
-       * "top 80%" 〜 "bottom 20%" なら、隣接区間の活性範囲が
-       * 重ならず、各区間が自分の担当を最後までやりきれる。
+       * pinSpacing は既定(true)のまま。false にすると、pin解放後に
+       * 要素が区間の末尾へずらされ、次のセクションのコピーと
+       * 画面上で重なる(実測: Sellの文言がBuyの上に出た)。
        */
-      start: options?.start ?? "top 80%",
-      end: options?.end ?? "bottom 20%",
       scrub: config.scrub,
       onUpdate(self) {
         config.apply(self.progress);
@@ -338,5 +414,5 @@ export function useVehicleSegment(
     });
 
     return () => st.kill();
-  }, [ref, section, options?.start, options?.end]);
+  }, [ref, section]);
 }
