@@ -50,6 +50,33 @@ function mix(from: number, to: number, t: number) {
   return from + (to - from) * t;
 }
 
+/**
+ * 0→1→0 の山を作る。旋回のように「始まって、終わる」動きの
+ * 立ち上がりと収まりを滑らかにするのに使う。
+ * sinを使うのは、両端の傾きが0になり継ぎ目が見えないため。
+ */
+function arc(t: number) {
+  return Math.sin(gsap.utils.clamp(0, 1, t) * Math.PI);
+}
+
+/**
+ * 車体の姿勢を一括で書く。
+ *
+ * ステアを切れば車体は外側へ傾く、という物理的な従属関係を
+ * 1箇所に閉じ込める。区間ごとにバラバラの比率で書くと、
+ * 同じ切れ角なのに区間によって傾きが違う、という破綻が起きる。
+ */
+function posture(steer: number, pitch = 0) {
+  viewProgress.steerAngle = steer;
+  /*
+   * ロールはステアと逆向き。左に切れば車体は右へ傾く。
+   * 係数はサスペンションの硬さに相当する。実車より控えめにして
+   * ある(大きいと船のように揺れて安っぽくなる)。
+   */
+  viewProgress.bodyRoll = -steer * V.posture.rollPerSteer;
+  viewProgress.bodyPitch = pitch;
+}
+
 /*
  * 区間ごとの「開始値」。前区間の終端値と一致させてある。
  * 実行時に viewProgress から読むのではなく定数で持つ理由は、
@@ -170,6 +197,12 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
       viewProgress.wheelAngle = WHEEL.atRest;
 
       /*
+       * 展示台の上で回っている状態なので、ハンドルは切らない。
+       * ここで前輪を切ると「曲がりながら止まっている」矛盾が出る。
+       */
+      posture(0);
+
+      /*
        * 光はリアが見えてから灯る。回転より遅らせるのが要。
        *
        * 当初は「リアハッチが開いて荷室から光が漏れる」だったが、
@@ -212,6 +245,12 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
       viewProgress.wheelAngle =
         WHEEL.atRest + (viewProgress.bodyZ - START.sell.z) / WHEEL_RADIUS;
 
+      /*
+       * 側面へ回り込む間だけハンドルを切る。
+       * 旋回の始まりと終わりで0に戻るので、直進姿勢との継ぎ目が出ない。
+       */
+      posture(-V.posture.steerMax * arc(turn));
+
       viewProgress.scanProgress = slice(p, V.sell.scanStart, V.sell.scanEnd);
 
       camera(V.camera.philosophy, V.camera.sell, p);
@@ -239,6 +278,8 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
       viewProgress.wheelAngle = WHEEL.sellEnd;
       viewProgress.rearGateOpen = 0;
       viewProgress.routeLineProgress = 0;
+      /* 展示中。ハンドルは正面を向いたまま */
+      posture(0);
 
       /*
        * カメラを円弧上で動かす。camera() を使わないのは、
@@ -281,6 +322,14 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
       viewProgress.wheelAngle = WHEEL.sellEnd + p * V.find.wheelSpin;
 
       viewProgress.routeLineProgress = p;
+
+      /*
+       * 走行中の緩やかな蛇行。
+       * 完全な直進だと「レール上を滑っている」ように見える。
+       * 進路を探している区間なので、ごく浅く左右に振ることで
+       * 「行き先を選びながら走っている」気配を出す。
+       */
+      posture(Math.sin(p * Math.PI * 2) * V.posture.steerWeave);
 
       /*
        * Buyの終端カメラ位置から始める。V.camera.buy を起点にすると、
@@ -330,6 +379,12 @@ const SEGMENTS: Record<Exclude<VehicleSection, "hero">, SegmentConfig> = {
 
       /* ライトは最後に落ちる。消えきると輪郭だけが残る */
       viewProgress.headlightIntensity = 1 - slice(p, 0.35, V.contact.lightOutAt);
+
+      /*
+       * 制動。前へ沈み込み、止まりきると水平に戻る。
+       * ハンドルは正面へ収束させる(曲がったまま止まらない)。
+       */
+      posture(0, arc(slice(p, 0, V.contact.wheelStopAt)) * V.posture.brakePitch);
 
       viewProgress.routeLineProgress = 1 - p;
 

@@ -46,6 +46,10 @@ export default function Hero() {
       viewProgress.bodyZ = V.hero.toZ;
       viewProgress.bodyRotationY = V.hero.toRotationY;
       viewProgress.headlightIntensity = 1;
+      /* 静止画として辻褄が合う姿勢。傾かず、ハンドルは正面 */
+      viewProgress.steerAngle = 0;
+      viewProgress.bodyRoll = 0;
+      viewProgress.bodyPitch = 0;
       viewProgress.cameraX = V.camera.hero.x;
       viewProgress.cameraY = V.camera.hero.y;
       viewProgress.cameraZ = V.camera.hero.z;
@@ -95,6 +99,41 @@ export default function Hero() {
           ease: "brandOut",
         },
         0,
+      );
+
+      /*
+       * ── 2.5. 転舵と制動 ──
+       *
+       * 右から入ってきて、こちらへ向き直りながら停まる動き。
+       * その間ハンドルは切れている。停止と同時に正面へ戻し、
+       * ブレーキで前へ沈み込む。
+       *
+       * ここだけは時間ベースで良い(Hero はサイト唯一の自動再生)。
+       * 以降の区間は全てスクロール位置から姿勢を決めている。
+       */
+      tl.fromTo(
+        viewProgress,
+        { steerAngle: -V.posture.steerMax, bodyRoll: V.posture.rollPerSteer * V.posture.steerMax },
+        {
+          steerAngle: 0,
+          bodyRoll: 0,
+          duration: V.hero.driveDuration,
+          ease: "brandOut",
+        },
+        0,
+      );
+
+      /* 制動によるノーズダイブ。沈んで、水平に戻る */
+      tl.to(
+        viewProgress,
+        {
+          bodyPitch: V.posture.brakePitch,
+          duration: V.hero.dipDuration / 2,
+          ease: "power2.out",
+          yoyo: true,
+          repeat: 1,
+        },
+        V.hero.driveDuration - 0.2,
       );
 
       /*

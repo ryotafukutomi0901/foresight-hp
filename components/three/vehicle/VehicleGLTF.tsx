@@ -85,6 +85,67 @@ export default function VehicleGLTF({ handleRef }: Props) {
     }
 
     /*
+     * ボディを「製図調」に置き換える。
+     *
+     * ═══════════════════════════════════════════════════════════════
+     *  参照資料 public/images/foresight/vehicle-parts/vehicle180.png は
+     *  **純黒の車体に白い線だけ**で描かれた製図。写真テクスチャの
+     *  質感が乗っていると、この線画のトーンにならない。
+     *
+     *  そこで写実PBRテクスチャを外し、フラットな黒に差し替える。
+     *  車体の情報は EdgesEffect が描く白線だけが担う構成にすると、
+     *  参照資料とほぼ同じ絵になる。
+     *
+     *  ジオメトリもノード構成も一切変えていない(CEO指示「基本パーツは
+     *  いじらない」)。差し替えているのはマテリアルだけ。
+     * ═══════════════════════════════════════════════════════════════
+     */
+    const body = found.Body;
+    if (body) {
+      body.traverse((obj) => {
+        const mesh = obj as THREE.Mesh;
+        if (!mesh.isMesh) return;
+
+        const list = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        mesh.material = list.map((m) => {
+          const name = (m as THREE.Material).name;
+
+          /*
+           * FORESIGHT のワードマークだけは白く残す。
+           * 参照資料でもここだけが明るく、ブランド名が読める。
+           */
+          if (name === "Badge") {
+            return new THREE.MeshStandardMaterial({
+              color: "#ffffff",
+              emissive: new THREE.Color("#ffffff"),
+              emissiveIntensity: 0.35,
+              metalness: 0,
+              roughness: 0.4,
+              toneMapped: false,
+            });
+          }
+
+          /*
+           * 車体本体とバッジ台座。
+           *
+           * 完全な黒(#000)にはしない。真っ黒だと面の向きが一切
+           * 読めなくなり、輪郭線だけが宙に浮いて紙の絵になる。
+           * ごく僅かに明度を残すと、面の存在が感じられたまま
+           * 線が主役の絵になる。
+           */
+          return new THREE.MeshStandardMaterial({
+            color: "#0b0b0e",
+            metalness: 0.15,
+            roughness: 0.72,
+          });
+        });
+        if (Array.isArray(mesh.material) && mesh.material.length === 1) {
+          mesh.material = mesh.material[0];
+        }
+      });
+    }
+
+    /*
      * ヘッドライトのマテリアルを個体化する。
      *
      * Blenderは同じマテリアルを使う複数オブジェクトを、GLB上でも

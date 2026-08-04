@@ -14,6 +14,7 @@ import {
 } from "@/lib/tokens";
 import Vehicle from "./vehicle/Vehicle";
 import Edges from "./effects/Edges";
+import Stage from "./vehicle/Stage";
 
 /*
  * VEHICLE SCENE — Hero〜Contactを貫く単一のCanvas。
@@ -145,6 +146,7 @@ export default function VehicleScene({ active = true }: { active?: boolean }) {
     >
       <CameraRig />
       <Lighting />
+      <Stage />
       <Vehicle />
 
       {/*

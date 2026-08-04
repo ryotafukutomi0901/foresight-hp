@@ -59,6 +59,15 @@ export default function Vehicle() {
     g.position.set(viewProgress.bodyX, viewProgress.bodyY, viewProgress.bodyZ);
     g.rotation.y = viewProgress.bodyRotationY;
 
+    /* ── 車体の姿勢 ──
+       ロール(旋回で外へ傾く)とピッチ(制動で前へ沈む)。
+       ルートに掛けるので、ホイールも含めて車全体が傾く。
+       実車は車体だけが傾いてタイヤは接地したままだが、
+       この規模の傾き(数度)ではその差は読み取れず、
+       むしろ全体が傾いたほうが塊としての重さが出る。 */
+    g.rotation.z = viewProgress.bodyRoll;
+    g.rotation.x = viewProgress.bodyPitch;
+
     /* ── サスペンションの沈み込み ──
        Bodyだけを下げる。ホイールはBodyの子ではないので沈まず、
        接地したまま車体が沈む = 実車のサスの動きになる。 */
@@ -82,7 +91,22 @@ export default function Vehicle() {
     const angle = viewProgress.wheelAngle;
     for (const name of ["Wheel_FL", "Wheel_FR", "Wheel_RL", "Wheel_RR"] as const) {
       const w = parts[name];
-      if (w) w.rotation.x = angle;
+      if (!w) continue;
+
+      /*
+       * 回転順を YXZ にする。
+       *
+       * 既定の XYZ だと転舵(Y)より先に転がり(X)が適用され、
+       * ハンドルを切ったときにタイヤが傾いて見える。
+       * YXZ なら「まず向きを変え、その向きのまま転がる」順になり、
+       * 実車と同じ挙動になる。
+       */
+      w.rotation.order = "YXZ";
+      w.rotation.x = angle;
+
+      /* 転舵するのは前輪だけ */
+      const isFront = name === "Wheel_FL" || name === "Wheel_FR";
+      w.rotation.y = isFront ? viewProgress.steerAngle : 0;
     }
 
     /* ── ヘッドライト ──
