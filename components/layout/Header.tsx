@@ -71,54 +71,6 @@ export default function Header() {
     { dependencies: [open] },
   );
 
-  /*
-   * ヘッダーの下にある地が明転しているかを見て、ヘッダー自身も反転させる。
-   *
-   * ヘッダーは固定で全区間に居座るため、明転セクションの上で暗いままだと
-   * 「白い紙に黒い帯が浮いている」状態になり、章の反転が台無しになる。
-   * 色クラスは全てトークン参照なので、data-tone を付け替えるだけで
-   * 文字・罫線・CTAの前景背景が一括で反転する。
-   *
-   * 判定はヘッダーの高さ分だけの帯を root にして、
-   * 明転セクションがその帯に掛かっているかで行う。
-   */
-  const [overLight, setOverLight] = useState(false);
-
-  useEffect(() => {
-    const sections = [
-      ...document.querySelectorAll<HTMLElement>('section[data-tone="light"]'),
-    ];
-    if (!sections.length) return;
-
-    const hit = new Set<Element>();
-    let io: IntersectionObserver | null = null;
-
-    const build = () => {
-      io?.disconnect();
-      hit.clear();
-      const h = headerRef.current?.offsetHeight ?? 64;
-      const cut = Math.max(0, window.innerHeight - h);
-      io = new IntersectionObserver(
-        (entries) => {
-          for (const e of entries) {
-            if (e.isIntersecting) hit.add(e.target);
-            else hit.delete(e.target);
-          }
-          setOverLight(hit.size > 0);
-        },
-        { rootMargin: `0px 0px -${cut}px 0px` },
-      );
-      for (const s of sections) io.observe(s);
-    };
-
-    build();
-    window.addEventListener("resize", build);
-    return () => {
-      io?.disconnect();
-      window.removeEventListener("resize", build);
-    };
-  }, []);
-
   // メニュー展開中は背面をスクロールさせない + Escで閉じる。
   useEffect(() => {
     if (!open) return;
@@ -143,30 +95,15 @@ export default function Header() {
   return (
     <header
       ref={headerRef}
-      data-tone={overLight ? "light" : undefined}
       /*
-       * 明転中は地を不透明にする。
-       * 半透明のままだと、ヘッダー自身の背景(F2F2F2)と、下の地(CFCFCF)を
-       * 透かした合成色がずれる。ロゴは mix-blend-mode で合成しており
-       * ブレンドはヘッダー自身の背景に対して解決されるため、
-       * ロゴの周りだけ明るい四角として浮いてしまう(実測で8階調の差)。
-       */
-      /*
-       * 帯として存在を主張させず、ロゴとナビだけが浮いている状態にする。
-       * 明転セクションを廃止したため、スクロールで色を変える必要も無くなった。
+       * 地は黒で固定する。
        *
-       * ⚠️ 完全な transparent にはしない。ロゴは mix-blend-mode:lighten で
-       *    黒を透過させており、ブレンドは「自分の親の背景」に対して解決される。
-       *    親が透明だと解決先が無く、ロゴの黒地が矩形として残る(実測)。
-       *    地と同じ色を薄く敷くことで、見た目は透明のままブレンドを成立させる。
+       * トークンの bg-void ではなくリテラルを置いているのは、
+       * Philosophy が data-tone="light" でトークンを反転させるため。
+       * bg-void だとヘッダーまでクリームになり、白い文字が消える。
+       * 章に関係なく常に黒であることが、この帯の役割。
        */
-      /*
-       * 以前は bg-void/[0.01] を敷いていた。ロゴが mix-blend-mode:lighten で
-       * 黒を透過させており、ブレンドの解決先として非透明の親が要ったため。
-       * ロゴを透過PNGに差し替えてブレンドが不要になったので、
-       * 完全な transparent に戻せる。
-       */
-      className="fixed inset-x-0 top-0 z-10 transition-colors duration-500"
+      className="fixed inset-x-0 top-0 z-10 bg-[#050506]"
     >
       <div className="container-x flex h-16 items-center justify-between gap-6 sm:h-20">
         <Link

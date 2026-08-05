@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Image from "next/image";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { BRAND_MESSAGE } from "@/lib/content";
@@ -22,6 +23,10 @@ import { BRAND_MESSAGE } from "@/lib/content";
  * ここは思想を語る章であって、車を見せる章ではない。
  */
 export default function BrandMessage() {
+  /* タイプライターで文字を流し込む先と、点滅するカーソル */
+  const typeRef = useRef<HTMLSpanElement>(null);
+  const typeCaretRef = useRef<HTMLSpanElement>(null);
+
   const scope = useScopedGsap<HTMLElement>(({ scope }) => {
     const mm = gsap.matchMedia();
 
@@ -31,7 +36,17 @@ export default function BrandMessage() {
         reduced: "(prefers-reduced-motion: reduce)",
       },
       (ctx) => {
-        if (ctx.conditions?.reduced) return;
+        if (ctx.conditions?.reduced) {
+          /*
+           * 動かさないが、見せないわけではない。
+           * タイプライターは初期値が空なので、ここで全文を入れる。
+           */
+          if (typeRef.current) {
+            typeRef.current.textContent = BRAND_MESSAGE.headline;
+          }
+          typeCaretRef.current?.setAttribute("data-done", "true");
+          return;
+        }
 
         /*
          * 見出しの出現。単語ごとにマスクを解く。
@@ -57,9 +72,37 @@ export default function BrandMessage() {
             { autoAlpha: 0, y: 14, duration: 0.9, ease: "brandOut" },
             "-=1.1",
           )
-          .from(
-            "[data-bm-word]",
-            { yPercent: 110, duration: 1.15, ease: "brandOut", stagger: 0.1 },
+          /*
+           * 大見出しをタイプライターで打つ。
+           *
+           * ═══════════════════════════════════════════════════════
+           *  文字数分の setTimeout を積まず、1本のtweenの onUpdate で
+           *  文字列を切り出す。ScrollTriggerに乗るので、スクロールを
+           *  戻せば巻き戻り、タイマーが取り残されることも無い。
+           *  ChapterHead のスクランブルと同じ作り。
+           * ═══════════════════════════════════════════════════════
+           */
+          .to(
+            { p: 0 },
+            {
+              p: 1,
+              duration: 2.0,
+              ease: "none",
+              onUpdate() {
+                const el = typeRef.current;
+                if (!el) return;
+                const p = (this.targets()[0] as { p: number }).p;
+                const full = BRAND_MESSAGE.headline;
+                el.textContent = full.slice(0, Math.ceil(p * full.length));
+              },
+              onComplete() {
+                if (typeRef.current) {
+                  typeRef.current.textContent = BRAND_MESSAGE.headline;
+                }
+                /* 打ち終わったらカーソルを消す。残すと入力欄に見える */
+                typeCaretRef.current?.setAttribute("data-done", "true");
+              },
+            },
             "-=0.6",
           )
           .from(
@@ -108,6 +151,7 @@ export default function BrandMessage() {
     <section
       ref={scope}
       data-chapter="philosophy"
+      data-tone="light"
       id="philosophy"
       aria-labelledby="philosophy-heading"
       className="section-y relative overflow-hidden"
@@ -123,7 +167,7 @@ export default function BrandMessage() {
           alt=""
           width={1024}
           height={1024}
-          className="h-auto w-full opacity-60"
+          className="h-auto w-full opacity-[0.85]"
         />
       </div>
 
@@ -149,14 +193,24 @@ export default function BrandMessage() {
             {BRAND_MESSAGE.lead}
           </p>
 
-          <h2 className="mt-6 font-latin text-display-l font-semibold leading-[1.05] tracking-[-0.01em] text-ink">
-            {BRAND_MESSAGE.headline.split(" ").map((word) => (
-              <span key={word} className="line-mask">
-                <span data-bm-word className="block">
-                  {word}
-                </span>
-              </span>
-            ))}
+          {/*
+            タイプライターで打つ見出し。
+            aria-label に完成形を持たせ、打っている途中の断片が
+            読み上げられないよう中身は aria-hidden にする。
+          */}
+          <h2
+            aria-label={BRAND_MESSAGE.headline}
+            className="mt-6 font-latin text-display-l font-semibold leading-[1.05] tracking-[-0.01em] text-ink"
+          >
+            <span aria-hidden className="inline">
+              <span ref={typeRef} />
+              <span
+                ref={typeCaretRef}
+                data-bm-caret
+                className="ml-1 inline-block w-[0.06em] self-stretch bg-ink align-[-0.08em]"
+                style={{ height: "0.86em" }}
+              />
+            </span>
           </h2>
 
           <p

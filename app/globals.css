@@ -198,15 +198,15 @@
   /*
    * ---- 章ごとの地 ----
    *
-   * 全章が同じ黒だと、スクロールしていて章が変わったことに気づけない。
-   * Hero(#050506)から少しずつ持ち上げ、Buyで最も明るくし、
-   * Contactで再び沈める。物語の抑揚と地の明るさを一致させる。
+   * Hero(暗) → Philosophy(明) → Services(暗) → Contact(暗)。
    *
-   * 段差を見せないために、各章の上端18%で前章の色から溶かす。
-   * 単色を敷くと境界が線として見えてしまう。
+   * 以前は全章を微妙に違う暗色にして繋いでいたが、差が小さすぎて
+   * 章が変わったことに気づけなかった。Philosophyだけを明転させ、
+   * **暗→明→暗の落差**で切れ目を作る。
    *
-   * 文字(#ededea)とのコントラストは最も明るい Buy(#131318)でも 15.5:1 で、
-   * WCAG AAA(7:1)を大きく上回る。
+   * Hero→Philosophy と Philosophy→Services は**あえて溶かさない**。
+   * 落差そのものが章の区切りなので、グラデーションで繋ぐと効果が消える。
+   * 繋ぐのは Services→Contact だけ。
    */
   section[data-chapter] {
     position: relative;
@@ -216,32 +216,65 @@
      * ScrollSmootherは1024px未満で無効になり、その帯では
      * ブラウザ標準のアンカー移動が使われる。scroll-margin が無いと
      * 章の見出しが固定ヘッダーの下に潜る。
-     * (デスクトップ側は SmoothScrollProvider が数値で補正している)
      */
     scroll-margin-top: 5rem;
   }
 
-  section[data-chapter="philosophy"] {
-    background: linear-gradient(180deg, #050506 0%, #0c0c0f 18%, #0c0c0f 100%);
+  /*
+   * Philosophy だけ明転する。
+   *
+   * 地の #f5f1eb はCEOがFigmaで指定した暖色のクリーム。
+   * 上の High Gloss Mono は「中間色を作らない」方針だが、
+   * これは指定色なので例外として1箇所だけ持つ。**他所へ広げないこと。**
+   *
+   * 文字色などは [data-tone="light"] のトークン差し替えに乗るので、
+   * ここでは地だけを上書きする(mono-200 #f2f2f2 → クリーム)。
+   */
+  section[data-chapter="philosophy"][data-tone="light"] {
+    --color-void: #f5f1eb;
+    --color-base: #f5f1eb;
+    background: #f5f1eb;
   }
-  section[data-chapter="sell"] {
-    background: linear-gradient(180deg, #0c0c0f 0%, #101014 18%, #101014 100%);
+
+  /*
+   * 明転した章の線画。
+   *
+   * 素材は「白い線をアルファで抜いたPNG」なので、明るい地の上では
+   * そのままだと消える。invert で黒い線に反転させる。
+   * .art-blend を使っていないため、既存の反転ルールは効かない。
+   */
+  section[data-chapter="philosophy"][data-tone="light"] [data-bm-art] img {
+    filter: invert(1);
   }
-  section[data-chapter="buy"] {
-    background: linear-gradient(180deg, #101014 0%, #131318 18%, #131318 100%);
+
+  section[data-chapter="services"] {
+    background: #0d0d0d;
   }
-  section[data-chapter="find"] {
-    background: linear-gradient(180deg, #131318 0%, #0f0f13 18%, #0f0f13 100%);
-  }
-  /* 最後だけ下端も沈める。Footerの地(void)へ繋ぐため */
+
+  /* 下端だけ沈めて Footer の地(void)へ繋ぐ */
   section[data-chapter="contact"] {
-    background: linear-gradient(
-      180deg,
-      #0f0f13 0%,
-      #08080a 18%,
-      #08080a 88%,
-      #050506 100%
-    );
+    background: linear-gradient(180deg, #0d0d0d 0%, #08080a 20%, #08080a 88%, #050506 100%);
+  }
+
+  /*
+   * タイプライターのカーソル。打ち終わると data-done が付いて消える。
+   * 残すと見出しが入力欄のように見えてしまう。
+   */
+  [data-bm-caret] {
+    animation: caret-blink 1s step-end infinite;
+  }
+  [data-bm-caret][data-done="true"] {
+    animation: none;
+    opacity: 0;
+  }
+  @keyframes caret-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
   }
 
   /* セクションの縦リズム */

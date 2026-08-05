@@ -1,30 +1,24 @@
 import Hero from "@/components/sections/Hero";
 import BrandMessage from "@/components/sections/BrandMessage";
-import Sell from "@/components/sections/Sell";
-import Buy from "@/components/sections/Buy";
-import Find from "@/components/sections/Find";
+import Services from "@/components/sections/Services";
 import Contact from "@/components/sections/Contact";
 
 /*
  * 単一ページ構成。
  *
  * ═══════════════════════════════════════════════════════════════
- *  Loading終了後からContactまで、**1台のSUVが旅を続ける
- *  一本の映像作品**として設計する。
- *
- *  車両は app/layout.tsx 直下の VehicleSceneMount が持つ単一Canvasに
- *  1インスタンスだけ存在し、セクションを跨いで状態を引き継ぐ。
- *  各セクションは車両を持たず、ScrollTriggerで lib/viewProgress を
- *  書き換えることで「その区間での車の振る舞い」を指示する。
+ *   HERO        生成した実映像。車が右から走ってきて停まり、
+ *               ヘッドライトが灯って左のコピーを照らす
+ *   PHILOSOPHY  ここだけ明転する。暗→明→暗の切り替わりで、
+ *               章が変わったことを地の色そのもので伝える
+ *   SERVICES    売る / 買う / 探す をタブ1つに束ねた章
+ *   CONTACT     問い合わせ
  * ═══════════════════════════════════════════════════════════════
  *
- *   HERO        右から走行 → 3/4ビューで停止 → ヘッドライト点灯
- *               (サイトで唯一の自動再生。以降は全てスクロール連動)
- *   PHILOSOPHY  回転してリアを見せ、ハッチが開き、荷室から光と言葉
- *   SELL        ハッチを閉じ、側面へ。スキャンラインが車体を走る
- *   BUY         カメラが周回し、ホイール/グリル/ライトを見せる
- *   FIND        再び走行姿勢へ。タイヤが回り、光の道が分岐する
- *   CONTACT     減速し、ライトが落ち、静かに停まる
+ * SERVICES は以前 Sell / Buy / Find の3セクションに分かれていた。
+ * 縦に3つ並ぶと1章あたりの情報が薄まり、スクロールしても
+ * 「同じような章がまた来た」としか感じられなかったため統合した。
+ * NAV の #sell / #buy / #find は Services 内のアンカーが受けている。
  *
  * SELL = お客様が売る(買取) / BUY = お客様が買う(販売)。
  * 顧客目線の命名で、lib/content.ts の定数と一致させている。
@@ -37,9 +31,7 @@ export default function Page() {
     <>
       <Hero />
       <BrandMessage />
-      <Sell />
-      <Buy />
-      <Find />
+      <Services />
       <Contact />
     </>
   );

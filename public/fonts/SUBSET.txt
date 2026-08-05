@@ -1,3 +1,3 @@
 Shippori Mincho / SIL Open Font License 1.1
-scripts/build-font-subset.mjs で生成。705 文字を収録。
+scripts/build-font-subset.mjs で生成。723 文字を収録。
 本文を追加・変更したら再生成すること（未収録の字はフォールバック書体で出る）。
