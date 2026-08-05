@@ -74,7 +74,7 @@ export default function HeroVideo() {
          *
          * 比率を合わせれば余白が生まれず、マスクが映像の端に一致する。
          */
-        className="absolute right-0 top-1/2 aspect-[16/9] w-[112%] -translate-y-1/2 sm:w-[96%] lg:w-[80%]"
+        className="absolute right-0 top-1/2 aspect-[16/9] w-[104%] -translate-y-1/2 sm:w-[88%] lg:w-[68%]"
         style={{
           /* 上下左を溶かし、ページの地に continuous に繋げる */
           maskImage:

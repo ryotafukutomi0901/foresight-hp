@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
-import { REVEAL_TRIGGER } from "@/lib/motion";
+import { useReveal } from "@/hooks/useReveal";
 import { CONTACT } from "@/lib/content";
 
 type Status = "idle" | "sending" | "sent" | "error";
@@ -26,47 +26,37 @@ export default function Contact() {
         reduced: "(prefers-reduced-motion: reduce)",
       },
       (ctx) => {
-        if (ctx.conditions?.reduced) return;
+        if (ctx.conditions?.reduced) {
+          gsap.set(scope.current?.querySelectorAll("[data-contact-form]") ?? [], {
+            autoAlpha: 1,
+            y: 0,
+          });
+          return;
+        }
 
-        gsap
-          .timeline({
-            scrollTrigger: { trigger: scope.current, ...REVEAL_TRIGGER },
-          })
-          .from("[data-contact-rule]", {
-            scaleX: 0,
-            transformOrigin: "left center",
-            duration: 1.4,
-            ease: "brandInOut",
-          })
-          .from(
-            "[data-contact-line]",
-            { yPercent: 115, duration: 1.2, ease: "brandOut", stagger: 0.1 },
-            "-=1.15",
-          )
-          .from(
-            "[data-contact-fragment]",
-            {
-              autoAlpha: 0,
-              y: 14,
-              duration: 0.7,
-              ease: "brandOut",
-              stagger: 0.12,
-            },
-            "-=0.75",
-          )
-          .from(
-            "[data-contact-closing]",
-            { autoAlpha: 0, y: 16, duration: 1.0, ease: "brandOut" },
-            "-=0.2",
-          )
-          .from(
-            "[data-contact-form]",
-            { autoAlpha: 0, y: 24, duration: 1.0, ease: "brandOut" },
-            "-=0.7",
-          );
+        /*
+         * フォームだけは1つの塊として出す。
+         * 入力欄を1つずつ順に出すと、書き始めようとしている人の前で
+         * 画面が動き続けることになる。
+         * 文章側は useReveal が上から順に拾う。
+         */
+        gsap.from("[data-contact-form]", {
+          autoAlpha: 0,
+          y: 24,
+          duration: 1.0,
+          ease: "brandOut",
+          scrollTrigger: {
+            trigger: "[data-contact-form]",
+            start: "top 88%",
+            once: true,
+          },
+        });
       },
     );
   }, []);
+
+  /* 文章はすべて共通の仕掛けで、上から順に出す */
+  useReveal(scope);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -116,9 +106,9 @@ export default function Contact() {
     >
       <div className="container-x">
         <div className="flex items-center gap-5">
-          <span className="label text-ink">{CONTACT.label}</span>
+          <span data-reveal className="label text-ink">{CONTACT.label}</span>
           <span
-            data-contact-rule
+            data-reveal
             aria-hidden
             className="h-px flex-1 origin-left bg-rule-strong"
           />
@@ -131,11 +121,9 @@ export default function Contact() {
               className="text-display-l font-normal leading-[1.22] text-ink"
             >
               {CONTACT.headline.map((line) => (
-                <span key={line} className="line-mask">
-                  <span data-contact-line className="block">
-                    {line}
-                  </span>
-                </span>
+                <span key={line} data-reveal className="block">
+                {line}
+              </span>
               ))}
             </h2>
 
@@ -143,7 +131,7 @@ export default function Contact() {
               {CONTACT.fragments.map((f) => (
                 <li
                   key={f}
-                  data-contact-fragment
+                  data-reveal
                   className="text-display-s font-normal text-ink-soft"
                 >
                   {f}
@@ -152,13 +140,14 @@ export default function Contact() {
             </ul>
 
             <p
-              data-contact-closing
+              data-reveal
               className="mt-8 text-display-s font-normal text-ink"
             >
               {CONTACT.closing}
             </p>
 
-            <p className="mt-10 max-w-md text-sm leading-loose text-ink-soft">
+            <p data-reveal
+            className="mt-10 max-w-md text-sm leading-loose text-ink-soft">
               {CONTACT.body}
             </p>
           </div>

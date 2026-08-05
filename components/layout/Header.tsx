@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
-import { gsap, useGSAP } from "@/hooks/useGsap";
+import { gsap, useGSAP, ScrollTrigger } from "@/hooks/useGsap";
 import { onOpeningDone } from "@/lib/sequence";
 import { CTA, NAV } from "@/lib/content";
 
@@ -71,6 +71,34 @@ export default function Header() {
     { dependencies: [open] },
   );
 
+  /*
+   * Hero の上でだけ透過する。
+   *
+   * Hero は映像が主役なので、黒い帯が乗ると上端が切られて見える。
+   * 逆に Philosophy 以降は地が明るくなったり文章が来たりするので、
+   * 帯が無いとナビが読めない。
+   *
+   * 背景色だけを触る。ヘッダーは Opening 明けに autoAlpha を
+   * animate されているので、opacity を奪い合わないようにする。
+   */
+  useEffect(() => {
+    const hero = document.getElementById("top");
+    const el = headerRef.current;
+    if (!hero || !el) return;
+
+    el.setAttribute("data-at-top", "true");
+
+    const st = ScrollTrigger.create({
+      trigger: hero,
+      start: "top top",
+      end: "bottom top",
+      onToggle: (self) =>
+        el.setAttribute("data-at-top", self.isActive ? "true" : "false"),
+    });
+
+    return () => st.kill();
+  }, []);
+
   // メニュー展開中は背面をスクロールさせない + Escで閉じる。
   useEffect(() => {
     if (!open) return;
@@ -95,15 +123,14 @@ export default function Header() {
   return (
     <header
       ref={headerRef}
+      data-header
       /*
-       * 地は黒で固定する。
-       *
-       * トークンの bg-void ではなくリテラルを置いているのは、
-       * Philosophy が data-tone="light" でトークンを反転させるため。
-       * bg-void だとヘッダーまでクリームになり、白い文字が消える。
-       * 章に関係なく常に黒であることが、この帯の役割。
+       * 地の色は globals.css が持つ。
+       * Hero の上では透過し、そこを離れると黒くなる(下の ScrollTrigger)。
+       * Tailwind の bg-* を置かないのは、透過との切り替えを
+       * CSS の transition に任せたいため。
        */
-      className="fixed inset-x-0 top-0 z-10 bg-[#050506]"
+      className="fixed inset-x-0 top-0 z-10"
     >
       <div className="container-x flex h-16 items-center justify-between gap-6 sm:h-20">
         <Link

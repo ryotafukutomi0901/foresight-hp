@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Image from "next/image";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
+import { useReveal } from "@/hooks/useReveal";
 import { BRAND_MESSAGE } from "@/lib/content";
 
 /*
@@ -23,9 +24,9 @@ import { BRAND_MESSAGE } from "@/lib/content";
  * ここは思想を語る章であって、車を見せる章ではない。
  */
 export default function BrandMessage() {
-  /* タイプライターで文字を流し込む先と、点滅するカーソル */
-  const typeRef = useRef<HTMLSpanElement>(null);
-  const typeCaretRef = useRef<HTMLSpanElement>(null);
+  /* タイプライターの各行の流し込み先と、行を渡り歩くカーソル */
+  const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const caretRef = useRef<HTMLSpanElement>(null);
 
   const scope = useScopedGsap<HTMLElement>(({ scope }) => {
     const mm = gsap.matchMedia();
@@ -36,92 +37,67 @@ export default function BrandMessage() {
         reduced: "(prefers-reduced-motion: reduce)",
       },
       (ctx) => {
+        const lines = lineRefs.current;
+
         if (ctx.conditions?.reduced) {
           /*
            * 動かさないが、見せないわけではない。
            * タイプライターは初期値が空なので、ここで全文を入れる。
            */
-          if (typeRef.current) {
-            typeRef.current.textContent = BRAND_MESSAGE.headline;
-          }
-          typeCaretRef.current?.setAttribute("data-done", "true");
+          lines.forEach((el, i) => {
+            if (el) el.textContent = BRAND_MESSAGE.headline[i];
+          });
+          caretRef.current?.setAttribute("data-done", "true");
           return;
         }
 
         /*
-         * 見出しの出現。単語ごとにマスクを解く。
-         * 全体を一度に出すより、読む速度に近い速さで現れるほうが
-         * 「読ませる」という意図に合う。
+         * 大見出しを**1行ずつ**タイプライターで打つ。
+         *
+         * ═══════════════════════════════════════════════════════
+         *  文字数分の setTimeout を積まず、行ごとに1本のtweenの
+         *  onUpdate で文字列を切り出す。ScrollTriggerに乗るので、
+         *  スクロールを戻せば巻き戻り、タイマーが取り残されない。
+         *
+         *  カーソルは打っている行の末尾に付く。行が変わったら
+         *  一緒に降りるので、「改行して打ち続けている」ように見える。
+         * ═══════════════════════════════════════════════════════
          */
-        gsap
-          .timeline({
-            scrollTrigger: {
-              trigger: scope.current,
-              start: "top 72%",
-              once: true,
-            },
-          })
-          .from("[data-bm-rule]", {
-            scaleX: 0,
-            transformOrigin: "left center",
-            duration: 1.4,
-            ease: "brandInOut",
-          })
-          .from(
-            "[data-bm-lead]",
-            { autoAlpha: 0, y: 14, duration: 0.9, ease: "brandOut" },
-            "-=1.1",
-          )
-          /*
-           * 大見出しをタイプライターで打つ。
-           *
-           * ═══════════════════════════════════════════════════════
-           *  文字数分の setTimeout を積まず、1本のtweenの onUpdate で
-           *  文字列を切り出す。ScrollTriggerに乗るので、スクロールを
-           *  戻せば巻き戻り、タイマーが取り残されることも無い。
-           *  ChapterHead のスクランブルと同じ作り。
-           * ═══════════════════════════════════════════════════════
-           */
-          .to(
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: scope.current, start: "top 72%", once: true },
+        });
+
+        BRAND_MESSAGE.headline.forEach((full, i) => {
+          tl.to(
             { p: 0 },
             {
               p: 1,
-              duration: 2.0,
+              /* 1文字あたりの速さを揃える。行の長さが違っても打鍵の速度は同じ */
+              duration: full.length * 0.055,
               ease: "none",
+              onStart() {
+                /* カーソルをこの行へ移す */
+                const host = lines[i]?.parentElement;
+                if (host && caretRef.current) host.appendChild(caretRef.current);
+              },
               onUpdate() {
-                const el = typeRef.current;
+                const el = lines[i];
                 if (!el) return;
                 const p = (this.targets()[0] as { p: number }).p;
-                const full = BRAND_MESSAGE.headline;
                 el.textContent = full.slice(0, Math.ceil(p * full.length));
               },
               onComplete() {
-                if (typeRef.current) {
-                  typeRef.current.textContent = BRAND_MESSAGE.headline;
-                }
-                /* 打ち終わったらカーソルを消す。残すと入力欄に見える */
-                typeCaretRef.current?.setAttribute("data-done", "true");
+                const el = lines[i];
+                if (el) el.textContent = full;
               },
             },
-            "-=0.6",
-          )
-          .from(
-            "[data-bm-sub]",
-            { autoAlpha: 0, y: 24, duration: 1.0, ease: "brandOut" },
-            "-=0.6",
+            /* 行の切り替わりで一拍おく。続けて打つと2行が1行に見える */
+            i === 0 ? 0 : ">+=0.22",
           );
-
-        gsap.from("[data-bm-body]", {
-          autoAlpha: 0,
-          y: 22,
-          duration: 1.2,
-          ease: "brandOut",
-          scrollTrigger: {
-            trigger: "[data-bm-body]",
-            start: "top 86%",
-            once: true,
-          },
         });
+
+        /* 打ち終わったらカーソルを消す。残すと入力欄に見える */
+        tl.call(() => caretRef.current?.setAttribute("data-done", "true"));
 
         /*
          * 背後の線画。スクロールに合わせてゆっくり浮上する。
@@ -147,6 +123,9 @@ export default function BrandMessage() {
     );
   }, []);
 
+  /* 本文はすべて共通の仕掛けで、上から順に出す */
+  useReveal(scope);
+
   return (
     <section
       ref={scope}
@@ -160,26 +139,30 @@ export default function BrandMessage() {
       <div
         data-bm-art
         aria-hidden
-        className="pointer-events-none absolute right-[-10%] top-1/2 w-[86%] max-w-[1100px] -translate-y-1/2 opacity-0 lg:right-[-4%] lg:w-[62%]"
+        className="pointer-events-none absolute right-[-8%] top-1/2 w-[92%] max-w-[1200px] -translate-y-1/2 opacity-0 lg:right-[-2%] lg:w-[64%]"
       >
+        {/*
+          素材は黒い線 / 背景透過(ffmpegのcolorkeyで白を抜いてある)。
+          クリームの地にそのまま置けるので、反転も合成モードも要らない。
+        */}
         <Image
-          src="/images/foresight/vehicle-parts/10-next-journey-alpha.png"
+          src="/images/foresight/vehicle-parts/vehiclenext-alpha.png"
           alt=""
-          width={1024}
-          height={1024}
-          className="h-auto w-full opacity-[0.85]"
+          width={1672}
+          height={941}
+          className="h-auto w-full opacity-[0.9]"
         />
       </div>
 
       <div className="container-x relative z-10">
         <div className="flex items-center gap-5">
-          <span id="philosophy-heading" className="label text-ink">
+          <span data-reveal id="philosophy-heading" className="label text-ink">
             {BRAND_MESSAGE.label}
           </span>
           <span
-            data-bm-rule
+            data-reveal
             aria-hidden
-            className="h-px flex-1 origin-left bg-rule-strong"
+            className="h-px flex-1 bg-rule-strong"
           />
         </div>
 
@@ -189,7 +172,7 @@ export default function BrandMessage() {
         */}
         <div className="mt-14">
           {/* 日本語の小見出し。英字の大見出しの上に置いて、章の主題を先に伝える */}
-          <p data-bm-lead className="text-display-s font-normal text-ink-soft">
+          <p data-reveal className="text-display-s font-normal text-ink-soft">
             {BRAND_MESSAGE.lead}
           </p>
 
@@ -199,22 +182,31 @@ export default function BrandMessage() {
             読み上げられないよう中身は aria-hidden にする。
           */}
           <h2
-            aria-label={BRAND_MESSAGE.headline}
-            className="mt-6 font-latin text-display-l font-semibold leading-[1.05] tracking-[-0.01em] text-ink"
+            aria-label={BRAND_MESSAGE.headline.join(" ")}
+            className="mt-6 font-latin text-display-l font-semibold leading-[1.15] tracking-[-0.01em] text-ink"
           >
-            <span aria-hidden className="inline">
-              <span ref={typeRef} />
-              <span
-                ref={typeCaretRef}
-                data-bm-caret
-                className="ml-1 inline-block w-[0.06em] self-stretch bg-ink align-[-0.08em]"
-                style={{ height: "0.86em" }}
-              />
-            </span>
+            {BRAND_MESSAGE.headline.map((line, i) => (
+              <span key={line} aria-hidden className="block">
+                <span
+                  ref={(el) => {
+                    lineRefs.current[i] = el;
+                  }}
+                />
+                {/* カーソルは打っている行へ移し替える(上のonStart) */}
+                {i === 0 ? (
+                  <span
+                    ref={caretRef}
+                    data-bm-caret
+                    className="ml-1 inline-block w-[0.06em] bg-ink align-[-0.08em]"
+                    style={{ height: "0.86em" }}
+                  />
+                ) : null}
+              </span>
+            ))}
           </h2>
 
           <p
-            data-bm-sub
+            data-reveal
             className="mt-12 max-w-lg text-body-l leading-loose text-ink-soft"
           >
             {BRAND_MESSAGE.sub[0]}
@@ -228,7 +220,7 @@ export default function BrandMessage() {
           行間2.4倍は読む速度そのものを落とすための値。
         */}
         <p
-          data-bm-body
+          data-reveal
           className="mt-14 max-w-xl text-sm leading-[2.4] text-ink-soft lg:mt-16"
         >
           {BRAND_MESSAGE.body}

@@ -212,12 +212,42 @@
     position: relative;
     z-index: 1;
     /*
+     * PC では1セクション=1画面。章の切れ目を高さでも作る。
+     *
+     * min-h であって h ではない。h に固定すると Contact の
+     * フォーム(実測で約800px)が短いビューポートで切れる。
+     * 最低1画面を保証しつつ、必要なら伸びる。
+     */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /*
      * ネイティブのhashジャンプ用。
      * ScrollSmootherは1024px未満で無効になり、その帯では
      * ブラウザ標準のアンカー移動が使われる。scroll-margin が無いと
      * 章の見出しが固定ヘッダーの下に潜る。
      */
     scroll-margin-top: 5rem;
+  }
+
+  @media (min-width: 1024px) {
+    section[data-chapter] {
+      min-height: 100svh;
+    }
+  }
+
+  /*
+   * ヘッダーは Hero の上でだけ透過する。
+   *
+   * 地はリテラルで持つ。トークンの bg-void を使うと Philosophy の
+   * data-tone="light" で反転してクリームになり、白い文字が消える。
+   */
+  header[data-header] {
+    background-color: #050506;
+    transition: background-color 0.45s ease;
+  }
+  header[data-header][data-at-top="true"] {
+    background-color: transparent;
   }
 
   /*
@@ -234,17 +264,6 @@
     --color-void: #f5f1eb;
     --color-base: #f5f1eb;
     background: #f5f1eb;
-  }
-
-  /*
-   * 明転した章の線画。
-   *
-   * 素材は「白い線をアルファで抜いたPNG」なので、明るい地の上では
-   * そのままだと消える。invert で黒い線に反転させる。
-   * .art-blend を使っていないため、既存の反転ルールは効かない。
-   */
-  section[data-chapter="philosophy"][data-tone="light"] [data-bm-art] img {
-    filter: invert(1);
   }
 
   section[data-chapter="services"] {

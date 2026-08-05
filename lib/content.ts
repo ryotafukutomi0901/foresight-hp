@@ -201,7 +201,8 @@ export const BRAND_MESSAGE = {
   label: "PHILOSOPHY",
   /* 英字ラベルだけだと何の章か伝わらない。日本語の小見出しを添える */
   lead: "私たちの思い",
-  headline: BRAND.beyond,
+  /* タイプライターで1行ずつ打つ。2行に割って、行の切り替わりで一拍おく */
+  headline: ["SEE BEYOND", "THE CONDITION."],
   sub: ["あなたの愛車には", "必ず価値があります。"],
   body: "長く乗られた車でも、長年放置された車でも、事故で潰れた車でも。あなたの愛車に価値を見出すのが我々の仕事です。",
 } as const;
@@ -243,8 +244,6 @@ export const SERVICES = {
   label: "SERVICES",
   headline: "三つの窓口",
   lead: "売る・買う・探す。それぞれに事情がある。",
-  /** タブ切替の補助ラベル。下部にもう一度切替を置くときに使う */
-  otherLabel: "OTHER",
   items: [
     {
       id: "sell",

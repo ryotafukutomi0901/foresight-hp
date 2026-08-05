@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import CtaButton from "@/components/ui/CtaButton";
-import { gsap, useScopedGsap } from "@/hooks/useGsap";
+import { gsap, useScopedGsap, Flip } from "@/hooks/useGsap";
+import { useReveal } from "@/hooks/useReveal";
 import { SERVICES } from "@/lib/content";
 
 /*
@@ -48,6 +49,26 @@ export default function Services() {
    */
   const panelRef = useRef<HTMLDivElement>(null);
 
+  /* 下線を滑らせるための参照 */
+  const tablistRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+
+  /*
+   * 進んだ/戻ったの向き。出入りの方向を決めるのに使う。
+   *
+   * ref をレンダー中に書くとReactの規約に反するので、
+   * active と一緒に state で持つ。タブを選ぶ関数を1本にまとめ、
+   * そこで前後の差を取る。
+   */
+  const [direction, setDirection] = useState(0);
+
+  const selectTab = useCallback((next: number) => {
+    setActive((prev) => {
+      setDirection(next - prev);
+      return next;
+    });
+  }, []);
+
   /*
    * NAV の #sell / #buy / #find を押したときに該当タブを開く。
    *
@@ -66,9 +87,9 @@ export default function Services() {
       const href = a?.getAttribute("href");
       if (!href?.startsWith("#")) return;
       const i = SERVICES.items.findIndex((it) => `#${it.id}` === href);
-      if (i >= 0) setActive(i);
+      if (i >= 0) selectTab(i);
     };
-    const onHash = () => setActive(tabFromHash());
+    const onHash = () => selectTab(tabFromHash());
 
     document.addEventListener("click", onClick);
     window.addEventListener("hashchange", onHash);
@@ -76,7 +97,7 @@ export default function Services() {
       document.removeEventListener("click", onClick);
       window.removeEventListener("hashchange", onHash);
     };
-  }, []);
+  }, [selectTab]);
 
   /*
    * 章の入口のアニメーション。
@@ -95,52 +116,55 @@ export default function Services() {
         reduced: "(prefers-reduced-motion: reduce)",
       },
       (ctx) => {
-        if (ctx.conditions?.reduced) return;
+        if (ctx.conditions?.reduced) {
+          gsap.set(scope.current?.querySelectorAll("[data-sv-tab]") ?? [], {
+            autoAlpha: 1,
+            y: 0,
+          });
+          return;
+        }
 
-        gsap
-          .timeline({
-            scrollTrigger: { trigger: scope.current, start: "top 78%", once: true },
-          })
-          .from("[data-sv-rule]", {
-            scaleX: 0,
-            transformOrigin: "left center",
-            duration: 1.2,
-            ease: "brandInOut",
-          })
-          .from(
-            "[data-sv-label]",
-            { autoAlpha: 0, y: 10, duration: 0.6, ease: "brandOut" },
-            "-=0.9",
-          )
-          .from(
-            "[data-sv-headline]",
-            { yPercent: 115, duration: 1.1, ease: "brandOut" },
-            "-=0.5",
-          )
-          .from(
-            "[data-sv-lead]",
-            { autoAlpha: 0, y: 16, duration: 0.8, ease: "brandOut" },
-            "-=0.7",
-          )
-          .from(
-            "[data-sv-tab]",
-            { autoAlpha: 0, y: 12, duration: 0.6, ease: "brandOut", stagger: 0.08 },
-            "-=0.5",
-          );
+        /*
+         * タブそのものの出現。
+         * 章の文章は useReveal が拾うので、ここはタブだけを見る。
+         */
+        gsap.from("[data-sv-tab]", {
+          autoAlpha: 0,
+          y: 12,
+          duration: 0.6,
+          ease: "brandOut",
+          stagger: 0.08,
+          scrollTrigger: {
+            trigger: "[role=tablist]",
+            start: "top 88%",
+            once: true,
+          },
+        });
       },
     );
   }, []);
 
+  /* 章の文章はすべて共通の仕掛けで、上から順に出す */
+  useReveal(scope);
+
   /*
-   * タブ切替。差し替わる側だけを短く animate する。
+   * タブが切り替わったときの、入ってくる側の動き。
    *
-   * 中身が入れ替わったことが分からないと、押しても反応が無いように
-   * 見える。かといって大きく動かすと、読んでいる最中に画面が
-   * 揺れる章になる。ごく短いフェードと僅かな上げに留める。
+   * ═══════════════════════════════════════════════════════════
+   *  **移動の向き**で入る方向を変える。
+   *
+   *    番号が増える(01→02, 01→03, 02→03) … 下から入る
+   *    番号が減る  (03→01, 02→01, 03→02) … 上から入る
+   *
+   *  3つのどの組み合わせでも成立する。向きは next-prev の符号だけで
+   *  決まるので、6通りを個別に書き分ける必要がない。
+   *  2つ飛ばし(01→03)でも「先へ跳んだ」ことが体で分かる。
+   * ═══════════════════════════════════════════════════════════
    */
   useEffect(() => {
     const el = panelRef.current;
     if (!el) return;
+
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       /* 動かさないが見せる。初期状態が透明な要素をここで戻す */
       gsap.set(el.querySelectorAll("[data-sv-panel-item]"), { autoAlpha: 1, y: 0 });
@@ -148,10 +172,12 @@ export default function Services() {
       return;
     }
 
+    const from = direction >= 0 ? 26 : -26;
+
     const ctx = gsap.context(() => {
       gsap.fromTo(
         "[data-sv-panel-item]",
-        { autoAlpha: 0, y: 14 },
+        { autoAlpha: 0, y: from },
         {
           autoAlpha: 1,
           y: 0,
@@ -162,19 +188,73 @@ export default function Services() {
         },
       );
 
-      /* ゴースト数字。薄さを保ったまま出す */
-      gsap.fromTo(
-        "[data-sv-ghost]",
-        { opacity: 0, y: 14 },
-        { opacity: 0.08, y: 0, duration: 0.7, ease: "brandOut", overwrite: true },
-      );
+      /*
+       * ゴースト数字は桁を回してから確定させる。
+       * どの番号からどの番号へ跳んでも同じように回るので、
+       * 「切り替わった」ことがこの1箇所で必ず伝わる。
+       */
+      const ghost = el.querySelector<HTMLElement>("[data-sv-ghost]");
+      const finalIndex = SERVICES.items[active].index;
+      if (ghost) {
+        gsap.fromTo(
+          ghost,
+          { opacity: 0, y: from * 0.6 },
+          {
+            opacity: 0.08,
+            y: 0,
+            duration: 0.75,
+            ease: "brandOut",
+            overwrite: true,
+            onUpdate() {
+              const p = this.progress();
+              ghost.textContent =
+                p < 0.7
+                  ? String(Math.floor(Math.random() * 90) + 10)
+                  : finalIndex;
+            },
+            onComplete() {
+              ghost.textContent = finalIndex;
+            },
+          },
+        );
+      }
     }, el);
 
     return () => ctx.revert();
+  }, [active, direction]);
+
+  /*
+   * タブの下線を滑らせる。
+   *
+   * ボタンごとに border-b を持たせると、切り替わりで下線が瞬間移動する。
+   * 独立した1本を Flip で前の位置から新しい位置へ動かすと、
+   * 隣り合わないタブ同士(01→03)でも間を滑って移動する。
+   * Flip は始点と終点の矩形から補間するので、飛ぶ距離が変わっても実装は同じ。
+   */
+  useEffect(() => {
+    const bar = indicatorRef.current;
+    const list = tablistRef.current;
+    if (!bar || !list) return;
+
+    const target = list.querySelectorAll<HTMLElement>("[data-sv-tab]")[active];
+    if (!target) return;
+
+    const place = () => {
+      bar.style.width = `${target.offsetWidth}px`;
+      bar.style.transform = `translateX(${target.offsetLeft}px)`;
+    };
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      place();
+      return;
+    }
+
+    const state = Flip.getState(bar);
+    place();
+    Flip.from(state, { duration: 0.5, ease: "brandInOut", absolute: false });
   }, [active]);
 
   const item = SERVICES.items[active];
-  const others = SERVICES.items.filter((_, i) => i !== active);
 
   return (
     <section
@@ -185,13 +265,9 @@ export default function Services() {
       className="section-y relative"
     >
       <div className="container-x">
-        <span
-          data-sv-rule
-          aria-hidden
-          className="block h-px w-full origin-left bg-rule-strong"
-        />
+        <span data-reveal aria-hidden className="block h-px w-full bg-rule-strong" />
 
-        <p data-sv-label className="label mt-6 text-ink-faint">
+        <p data-reveal className="label mt-6 text-ink-faint">
           {SERVICES.label}
         </p>
 
@@ -199,14 +275,10 @@ export default function Services() {
           id="services-heading"
           className="mt-8 text-display-l font-normal leading-[1.22] text-ink"
         >
-          <span className="line-mask">
-            <span data-sv-headline className="block">
-              {SERVICES.headline}
-            </span>
-          </span>
+          <span data-reveal className="block">{SERVICES.headline}</span>
         </h2>
 
-        <p data-sv-lead className="mt-6 text-body-l text-ink-soft">
+        <p data-reveal className="mt-6 text-body-l text-ink-soft">
           {SERVICES.lead}
         </p>
 
@@ -220,10 +292,20 @@ export default function Services() {
 
         {/* ── タブ ── */}
         <div
+          ref={tablistRef}
           role="tablist"
           aria-label="サービスの種類"
-          className="mt-16 flex items-end gap-8 border-b border-rule sm:gap-12"
+          className="relative mt-16 flex items-end gap-8 border-b border-rule sm:gap-12"
         >
+          {/*
+            滑る下線。各ボタンが自前で持つのではなく1本を動かす。
+            位置と幅は上の useEffect が実測して当てる。
+          */}
+          <span
+            ref={indicatorRef}
+            aria-hidden
+            className="pointer-events-none absolute -bottom-px left-0 h-px bg-ink"
+          />
           {SERVICES.items.map((it, i) => {
             const on = i === active;
             return (
@@ -234,11 +316,9 @@ export default function Services() {
                 type="button"
                 aria-selected={on}
                 aria-controls="services-panel"
-                onClick={() => setActive(i)}
-                className={`-mb-px flex items-baseline gap-3 border-b pb-4 transition-colors duration-300 ${
-                  on
-                    ? "border-ink text-ink"
-                    : "border-transparent text-ink-faint hover:text-ink-soft"
+                onClick={() => selectTab(i)}
+                className={`flex items-baseline gap-3 pb-4 transition-colors duration-300 ${
+                  on ? "text-ink" : "text-ink-faint hover:text-ink-soft"
                 }`}
               >
                 <span className="label">{it.index}</span>
@@ -327,25 +407,6 @@ export default function Services() {
           </div>
         </div>
 
-        {/* ── 下部の切替。読み終えた所から次へ移れるようにする ── */}
-        <div className="mt-20 flex items-center gap-6 border-t border-rule pt-10">
-          <span className="label text-ink-faint">{SERVICES.otherLabel}</span>
-          <div className="flex flex-wrap gap-3">
-            {others.map((it) => (
-              <button
-                key={it.id}
-                type="button"
-                onClick={() =>
-                  setActive(SERVICES.items.findIndex((x) => x.id === it.id))
-                }
-                className="border border-rule-strong px-5 py-3 text-sm text-ink-soft transition-colors duration-300 hover:border-ink hover:text-ink"
-              >
-                <span className="label mr-2 text-ink-faint">{it.index}</span>
-                {it.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
