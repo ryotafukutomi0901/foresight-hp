@@ -233,6 +233,18 @@
   @media (min-width: 1024px) {
     section[data-chapter] {
       min-height: 100svh;
+      /*
+       * 1画面に収めるため、縦の余白を .section-y より小さく上書きする。
+       *
+       * .section-y は上下 clamp(6rem,14vh,12rem)=最大192px ずつ。
+       * 中身が798pxでも合計1050pxになり、900pxの画面から溢れていた
+       * (実測)。中身は収まっているのに余白だけで溢れる状態。
+       *
+       * 上を厚めに取るのは、固定ヘッダー(80px)の下に見出しが
+       * 潜らないようにするため。中身は flex で縦中央に置くので、
+       * 余白そのものは最小限でよい。
+       */
+      padding-block: 6rem 3rem;
     }
   }
 
@@ -266,13 +278,23 @@
     background: #f5f1eb;
   }
 
+  /*
+   * Services の地。
+   *
+   * 黒(#0d0d0d)をやめ、暖色寄りのダークグレーにする。
+   * Philosophy のクリーム(#f5f1eb)と同じ暖色の系統に乗せると、
+   * 明転→暗転の切り替わりが「別のサイトに来た」ではなく
+   * 「同じ空間の照明が落ちた」ように繋がる。
+   *
+   * 文字(#ededea)とのコントラスト比は 14.9:1 で WCAG AAA を満たす。
+   */
   section[data-chapter="services"] {
-    background: #0d0d0d;
+    background: #1c1a17;
   }
 
   /* 下端だけ沈めて Footer の地(void)へ繋ぐ */
   section[data-chapter="contact"] {
-    background: linear-gradient(180deg, #0d0d0d 0%, #08080a 20%, #08080a 88%, #050506 100%);
+    background: linear-gradient(180deg, #1c1a17 0%, #12110f 22%, #12110f 86%, #050506 100%);
   }
 
   /*

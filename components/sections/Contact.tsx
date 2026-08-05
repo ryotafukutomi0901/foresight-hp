@@ -114,7 +114,7 @@ export default function Contact() {
           />
         </div>
 
-        <div className="mt-16 grid gap-16 lg:grid-cols-[1fr_1fr] lg:gap-24">
+        <div className="mt-10 grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-24">
           <div>
             <h2
               id="contact-heading"
@@ -127,7 +127,7 @@ export default function Contact() {
               ))}
             </h2>
 
-            <ul className="mt-14 flex flex-col gap-1">
+            <ul className="mt-10 flex flex-col gap-1">
               {CONTACT.fragments.map((f) => (
                 <li
                   key={f}
@@ -147,7 +147,7 @@ export default function Contact() {
             </p>
 
             <p data-reveal
-            className="mt-10 max-w-md text-sm leading-loose text-ink-soft">
+            className="mt-8 max-w-md text-sm leading-loose text-ink-soft">
               {CONTACT.body}
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function Contact() {
             data-contact-form
             onSubmit={onSubmit}
             noValidate
-            className="flex flex-col gap-8"
+            className="flex flex-col gap-6"
           >
             <fieldset className="flex flex-col gap-4">
               <legend className="label text-ink-faint">

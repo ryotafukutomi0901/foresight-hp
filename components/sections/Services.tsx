@@ -175,6 +175,48 @@ export default function Services() {
     const from = direction >= 0 ? 26 : -26;
 
     const ctx = gsap.context(() => {
+      /*
+       * 走査線がパネルを横切り、その後ろから中身が現れる。
+       *
+       * ═══════════════════════════════════════════════════════
+       *  切り替わったこと自体は下線と数字で分かるが、
+       *  それだけだと「入れ替わった」に留まって目が止まらない。
+       *
+       *  線が1本走ると、視線がその線を追う。追った先に新しい中身が
+       *  在るという順番になるので、内容へ自然に目が落ちる。
+       *  進む向きへ走らせるので、01→03のような飛び方も体で分かる。
+       *
+       *  製図の走査線はこのサイトの語彙(Findのscanと同じ idiom)なので、
+       *  派手さを足しても浮かない。
+       * ═══════════════════════════════════════════════════════
+       */
+      const sweep = el.querySelector<HTMLElement>("[data-sv-sweep]");
+      if (sweep) {
+        gsap.fromTo(
+          sweep,
+          {
+            autoAlpha: 1,
+            scaleX: 0,
+            transformOrigin: direction >= 0 ? "left center" : "right center",
+          },
+          {
+            scaleX: 1,
+            duration: 0.34,
+            ease: "power2.in",
+            onComplete() {
+              /* 走りきったら反対側へ抜ける。往復させると鈍く見える */
+              gsap.to(sweep, {
+                scaleX: 0,
+                transformOrigin: direction >= 0 ? "right center" : "left center",
+                duration: 0.42,
+                ease: "power2.out",
+                onComplete: () => gsap.set(sweep, { autoAlpha: 0 }),
+              });
+            },
+          },
+        );
+      }
+
       gsap.fromTo(
         "[data-sv-panel-item]",
         { autoAlpha: 0, y: from },
@@ -185,6 +227,8 @@ export default function Services() {
           ease: "brandOut",
           stagger: 0.06,
           overwrite: true,
+          /* 線が通り過ぎた所から現れる */
+          delay: 0.22,
         },
       );
 
@@ -205,6 +249,7 @@ export default function Services() {
             duration: 0.75,
             ease: "brandOut",
             overwrite: true,
+            delay: 0.22,
             onUpdate() {
               const p = this.progress();
               ghost.textContent =
@@ -295,7 +340,7 @@ export default function Services() {
           ref={tablistRef}
           role="tablist"
           aria-label="サービスの種類"
-          className="relative mt-16 flex items-end gap-8 border-b border-rule sm:gap-12"
+          className="relative mt-10 flex items-end gap-8 border-b border-rule sm:gap-12"
         >
           {/*
             滑る下線。各ボタンが自前で持つのではなく1本を動かす。
@@ -336,8 +381,14 @@ export default function Services() {
           id="services-panel"
           role="tabpanel"
           aria-live="polite"
-          className="mt-20 grid gap-16 lg:grid-cols-[1.1fr_1fr] lg:gap-24"
+          className="relative mt-12 grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-24"
         >
+          {/* 切替時に横切る走査線。通常は透明 */}
+          <span
+            data-sv-sweep
+            aria-hidden
+            className="pointer-events-none absolute -top-6 left-0 right-0 h-px bg-ink opacity-0"
+          />
           <div>
             {/* 「自分の話かどうか」を最初に判断させる一行 */}
             <span
@@ -349,7 +400,7 @@ export default function Services() {
 
             <p
               data-sv-panel-item
-              className="mt-10 text-display-l font-normal leading-[1.22] text-ink"
+              className="mt-8 text-display-l font-normal leading-[1.22] text-ink"
             >
               {item.headline.map((line) => (
                 <span key={line} className="block">
@@ -360,12 +411,12 @@ export default function Services() {
 
             <p
               data-sv-panel-item
-              className="mt-10 max-w-xl text-sm leading-[2.2] text-ink-soft"
+              className="mt-8 max-w-xl text-sm leading-[2.2] text-ink-soft"
             >
               {item.body}
             </p>
 
-            <div data-sv-panel-item className="mt-12">
+            <div data-sv-panel-item className="mt-10">
               <CtaButton href={item.cta.href}>{item.cta.label}</CtaButton>
             </div>
           </div>
@@ -390,7 +441,7 @@ export default function Services() {
               {item.index}
             </span>
 
-            <ul className="mt-10 border-t border-rule">
+            <ul className="mt-8 border-t border-rule">
               {item.points.map((pt) => (
                 <li
                   key={pt}

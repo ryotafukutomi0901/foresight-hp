@@ -100,22 +100,28 @@ export default function BrandMessage() {
         tl.call(() => caretRef.current?.setAttribute("data-done", "true"));
 
         /*
-         * 背後の線画。スクロールに合わせてゆっくり浮上する。
-         * 移動量を小さく取り、視差として感じる程度に留める。
-         * 大きく動かすと「動く背景」になり、文章から目が逸れる。
+         * 背後の線画。
+         *
+         * 以前はスクロールに連動して上下に流していたが、
+         * 章に着いた時点では絵がまだ途中までしか出ておらず、
+         * 「全部見えている」状態にならなかった。
+         *
+         * 章に入ったら一度だけ、全体をそのまま出す。
+         * 位置も動かさない。画は読ませるものではなく、
+         * 文章の後ろに在るものなので、動かす必要が無い。
          */
         gsap.fromTo(
           "[data-bm-art]",
-          { yPercent: 7, autoAlpha: 0 },
+          { autoAlpha: 0, scale: 1.02 },
           {
-            yPercent: -7,
             autoAlpha: 1,
-            ease: "none",
+            scale: 1,
+            duration: 1.6,
+            ease: "brandOut",
             scrollTrigger: {
               trigger: scope.current,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: 1,
+              start: "top 70%",
+              once: true,
             },
           },
         );
@@ -139,7 +145,7 @@ export default function BrandMessage() {
       <div
         data-bm-art
         aria-hidden
-        className="pointer-events-none absolute right-[-8%] top-1/2 w-[92%] max-w-[1200px] -translate-y-1/2 opacity-0 lg:right-[-2%] lg:w-[64%]"
+        className="pointer-events-none absolute left-1/2 top-1/2 w-[110%] max-w-[1400px] -translate-x-1/2 -translate-y-1/2 opacity-0 lg:w-[82%]"
       >
         {/*
           素材は黒い線 / 背景透過(ffmpegのcolorkeyで白を抜いてある)。
@@ -150,7 +156,11 @@ export default function BrandMessage() {
           alt=""
           width={1672}
           height={941}
-          className="h-auto w-full opacity-[0.9]"
+          /*
+            文章の背後に置くので、線が本文を横切っても読めるところまで
+            落とす。実測で0.9のままだと車体の線が本文に重なって読みにくい。
+          */
+          className="h-auto w-full opacity-[0.4]"
         />
       </div>
 
