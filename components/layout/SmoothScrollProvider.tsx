@@ -49,7 +49,21 @@ export default function SmoothScrollProvider({
         // ページ内アンカーはScrollSmoother経由で移動させる。
         // 通常のhashジャンプはsmootherの内部位置とずれるため横取りする。
         const onClick = (e: MouseEvent) => {
-          if (e.defaultPrevented || e.button !== 0) return;
+          /*
+           * ⚠️ e.defaultPrevented のチェックは外してある。
+           *
+           * ヘッダー等のページ内リンクに next/link の <Link> を使うと、
+           * <Link> 自身の onClick が要素レベルで先に発火して
+           * preventDefault() を呼ぶ。バブリングでこの document ハンドラに
+           * 届いた時点で既に defaultPrevented=true になっており、
+           * ここで早期returnしてスクロールが一切起きなくなっていた
+           * (実測: ヘッダーの「相談する」を押しても反応無し)。
+           *
+           * 修正の本体はハッシュリンクを <Link> ではなく素の <a> に
+           * 差し替えること(Header/Footer/CtaButton)。ここでは
+           * defaultPrevented を見ないようにして、二重の対策にしている。
+           */
+          if (e.button !== 0) return;
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
           const anchor = (e.target as HTMLElement | null)?.closest("a");

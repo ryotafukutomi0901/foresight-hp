@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import Logo from "@/components/ui/Logo";
 import { gsap, useGSAP, ScrollTrigger } from "@/hooks/useGsap";
 import { onOpeningDone } from "@/lib/sequence";
@@ -133,20 +132,20 @@ export default function Header() {
       className="fixed inset-x-0 top-0 z-10"
     >
       <div className="container-x flex h-16 items-center justify-between gap-6 sm:h-20">
-        <Link
+        <a
           href="#top"
           aria-label="Foresight ホーム"
           className="shrink-0 py-2"
         >
           <Logo className="w-24 sm:w-28" priority />
-        </Link>
+        </a>
 
         {/* Desktop nav */}
         <nav aria-label="メインナビゲーション" className="hidden lg:block">
           <ul className="flex items-center gap-10">
             {NAV.map((item) => (
               <li key={item.href}>
-                <Link
+                <a
                   href={item.href}
                   /*
                    * .label は10px固定で、SectionHeadやFooterと共有している。
@@ -156,19 +155,19 @@ export default function Header() {
                   className="label text-[0.8125rem] tracking-[0.28em] text-ink-soft transition-colors duration-300 hover:text-ink"
                 >
                   {item.label}
-                </Link>
+                </a>
               </li>
             ))}
           </ul>
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
+          <a
             href={CTA.consult.href}
             className="hidden min-h-11 items-center bg-ink px-6 text-sm tracking-[0.14em] text-void transition-colors duration-300 hover:bg-ink-soft sm:inline-flex"
           >
             {CTA.consult.label}
-          </Link>
+          </a>
 
           <button
             ref={toggleRef}
@@ -210,7 +209,7 @@ export default function Header() {
           <ul className="flex flex-col gap-2">
             {NAV.map((item) => (
               <li key={item.href} className="line-mask">
-                <Link
+                <a
                   data-menu-item
                   href={item.href}
                   onClick={() => setOpen(false)}
@@ -218,27 +217,27 @@ export default function Header() {
                 >
                   <span className="label text-ink-faint">{item.label}</span>
                   <span className="text-2xl text-ink">{item.ja}</span>
-                </Link>
+                </a>
               </li>
             ))}
           </ul>
         </nav>
 
         <div data-menu-item className="mt-12 flex flex-col gap-3">
-          <Link
+          <a
             href={CTA.sell.href}
             onClick={() => setOpen(false)}
             className="flex min-h-[3.25rem] items-center justify-center bg-ink px-8 text-sm tracking-[0.12em] text-void"
           >
             {CTA.sell.label}
-          </Link>
-          <Link
+          </a>
+          <a
             href={CTA.find.href}
             onClick={() => setOpen(false)}
             className="flex min-h-[3.25rem] items-center justify-center border border-rule-strong px-8 text-sm tracking-[0.12em] text-ink"
           >
             {CTA.find.label}
-          </Link>
+          </a>
         </div>
       </div>
     </header>
