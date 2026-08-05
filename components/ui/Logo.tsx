@@ -1,19 +1,26 @@
 import Image from "next/image";
 
 /*
- * ロゴは logo2.svg(ベクター・確定素材)を使う。
+ * ロゴ。背景を透過させたPNG(logo-mark-trim.png)を使う。
  *
- * このSVGは「黒い矩形にロゴが穴として抜かれた」構造で、単体では
- * 白背景でのみ白ロゴに見える。サイトの地は暗いのでそのままでは消える。
- * そこで背後に白を敷いて「白ロゴ/黒地」の合成を作り、
- * mix-blend-mode:lighten で黒を透過させる。lighten は max(a,b) なので
- * 黒(0)は地をそのまま通し、白いロゴだけが残る。
+ * ═══════════════════════════════════════════════════════════════
+ *  なぜ合成をやめたのか
  *
- * ⚠️ invert(1) だけで済ませようとすると、SVGの地が白に反転して
- *    白い矩形として残る(実測)。ブレンドは必須。
+ *  以前は logo2.svg(黒い矩形にロゴが穴として抜かれた素材)の背後に
+ *  白を敷き、mix-blend-mode: lighten で黒を透過させていた。
  *
- * data-header-logo は Opening → Header のロゴ着地点の目印
- * (components/opening/OpeningSequence.tsx から参照される)。
+ *  この方式は**ヘッダーを透過にした時点で破綻する**。
+ *  ブレンドは stacking context の中でしか効かず、ヘッダーは
+ *  fixed + z-index で自前の context を作る。結果、ロゴの黒地が
+ *  そのまま黒い矩形として残り、スクロールすると切り抜きだと分かる
+ *  (実測。ヘッダー左上に 110×80px の黒い箱が見えていた)。
+ *
+ *  素材側の黒をアルファに落としてしまえば、合成モードにも
+ *  祖先の構造にも依存しなくなる。線画で使ったのと同じ判断。
+ *  (ffmpeg の lumakey で logo2.PNG から生成)
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * data-header-logo は Opening → Header のロゴ着地点の目印。
  */
 export default function Logo({
   className = "",
@@ -25,11 +32,12 @@ export default function Logo({
   return (
     <span
       data-header-logo
-      className={`art-blend relative block bg-white ${className}`}
-      style={{ aspectRatio: "1536 / 1085" }}
+      className={`relative block ${className}`}
+      /* トリム後の実寸比。余白を削ってあるので元SVGとは比率が違う */
+      style={{ aspectRatio: "952 / 564" }}
     >
       <Image
-        src="/logo2.svg"
+        src="/logo-mark-trim.png"
         alt="Foresight"
         fill
         sizes="200px"

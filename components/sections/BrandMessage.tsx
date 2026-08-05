@@ -53,9 +53,14 @@ export default function BrandMessage() {
             ease: "brandInOut",
           })
           .from(
+            "[data-bm-lead]",
+            { autoAlpha: 0, y: 14, duration: 0.9, ease: "brandOut" },
+            "-=1.1",
+          )
+          .from(
             "[data-bm-word]",
             { yPercent: 110, duration: 1.15, ease: "brandOut", stagger: 0.1 },
-            "-=1.1",
+            "-=0.6",
           )
           .from(
             "[data-bm-sub]",
@@ -118,7 +123,7 @@ export default function BrandMessage() {
           alt=""
           width={1024}
           height={1024}
-          className="h-auto w-full opacity-30"
+          className="h-auto w-full opacity-60"
         />
       </div>
 
@@ -139,7 +144,12 @@ export default function BrandMessage() {
           「何の話か」が視界から消えない。
         */}
         <div className="mt-14">
-          <h2 className="font-latin text-display-l font-semibold leading-[1.05] tracking-[-0.01em] text-ink">
+          {/* 日本語の小見出し。英字の大見出しの上に置いて、章の主題を先に伝える */}
+          <p data-bm-lead className="text-display-s font-normal text-ink-soft">
+            {BRAND_MESSAGE.lead}
+          </p>
+
+          <h2 className="mt-6 font-latin text-display-l font-semibold leading-[1.05] tracking-[-0.01em] text-ink">
             {BRAND_MESSAGE.headline.split(" ").map((word) => (
               <span key={word} className="line-mask">
                 <span data-bm-word className="block">

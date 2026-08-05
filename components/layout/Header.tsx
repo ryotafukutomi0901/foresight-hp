@@ -160,7 +160,13 @@ export default function Header() {
        *    親が透明だと解決先が無く、ロゴの黒地が矩形として残る(実測)。
        *    地と同じ色を薄く敷くことで、見た目は透明のままブレンドを成立させる。
        */
-      className="fixed inset-x-0 top-0 z-10 bg-void/[0.01] transition-colors duration-500"
+      /*
+       * 以前は bg-void/[0.01] を敷いていた。ロゴが mix-blend-mode:lighten で
+       * 黒を透過させており、ブレンドの解決先として非透明の親が要ったため。
+       * ロゴを透過PNGに差し替えてブレンドが不要になったので、
+       * 完全な transparent に戻せる。
+       */
+      className="fixed inset-x-0 top-0 z-10 transition-colors duration-500"
     >
       <div className="container-x flex h-16 items-center justify-between gap-6 sm:h-20">
         <Link
