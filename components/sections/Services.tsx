@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CtaButton from "@/components/ui/CtaButton";
 import { gsap, useScopedGsap, Flip } from "@/hooks/useGsap";
 import { useReveal } from "@/hooks/useReveal";
+import { useDrawRule } from "@/hooks/useDrawRule";
 import { SERVICES } from "@/lib/content";
 
 /*
@@ -52,6 +53,9 @@ export default function Services() {
   /* 下線を滑らせるための参照 */
   const tablistRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
+
+  /* 地に流す背景アニメーション(下記参照)のための参照 */
+  const marqueeRef = useRef<HTMLDivElement>(null);
 
   /*
    * 進んだ/戻ったの向き。出入りの方向を決めるのに使う。
@@ -146,6 +150,8 @@ export default function Services() {
 
   /* 章の文章はすべて共通の仕掛けで、上から順に出す */
   useReveal(scope);
+  /* 章頭の罫線はスクロールに連動して左→右に伸ばす */
+  useDrawRule(scope);
 
   /*
    * タブが切り替わったときの、入ってくる側の動き。
@@ -299,6 +305,46 @@ export default function Services() {
     Flip.from(state, { duration: 0.5, ease: "brandInOut", absolute: false });
   }, [active]);
 
+  /*
+   * 地の奥を常時ゆっくり流れる帯。
+   *
+   * ═══════════════════════════════════════════════════════════════
+   *  この章は写真を使わないので、静止しているとスクロールで
+   *  素通りされやすい(CEOフィードバック「メリハリがなくスルーしがち」)。
+   *  入場時のタブ出現・切替時の走査線+ゴースト数字は
+   *  「操作した時だけ」動くもので、スクロールで通り過ぎるだけの人には
+   *  一度も見えないことがある。
+   *
+   *  常時ループする背景の帯は、操作しなくても「この章だけ動いている」
+   *  ことを体感させる。地に沈む不透明度に抑え、可読性は奪わない。
+   * ═══════════════════════════════════════════════════════════════
+   */
+  const tickerText = useMemo(
+    () =>
+      Array(3)
+        .fill(SERVICES.items.map((it) => it.label).join("   ―   "))
+        .join("   ―   "),
+    [],
+  );
+
+  useEffect(() => {
+    const el = marqueeRef.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    /* 同じ内容を2枚並べておき、幅の半分だけ動かして継ぎ目を消す(ループ) */
+    const tween = gsap.to(el, {
+      xPercent: -50,
+      duration: 34,
+      ease: "none",
+      repeat: -1,
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, []);
+
   const item = SERVICES.items[active];
 
   return (
@@ -307,10 +353,25 @@ export default function Services() {
       data-chapter="services"
       id="services"
       aria-labelledby="services-heading"
-      className="section-y relative"
+      className="section-y relative overflow-hidden"
     >
-      <div className="container-x">
-        <span data-reveal aria-hidden className="block h-px w-full bg-rule-strong" />
+      {/* 常時ループする帯。地に沈める。他の文章・タブより後ろに置く */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-6 z-0 overflow-hidden opacity-[0.05] lg:bottom-10"
+      >
+        <div ref={marqueeRef} className="flex w-max whitespace-nowrap">
+          <span className="font-latin pr-12 text-[3.25rem] font-semibold uppercase leading-none tracking-[0.06em] text-ink sm:text-[4.5rem]">
+            {tickerText}
+          </span>
+          <span className="font-latin pr-12 text-[3.25rem] font-semibold uppercase leading-none tracking-[0.06em] text-ink sm:text-[4.5rem]">
+            {tickerText}
+          </span>
+        </div>
+      </div>
+
+      <div className="container-x relative z-10">
+        <span data-chapter-rule aria-hidden className="block h-[2px] w-full bg-ink-faint" />
 
         <p data-reveal className="label mt-6 text-ink-faint">
           {SERVICES.label}

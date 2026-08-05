@@ -279,6 +279,16 @@
   }
 
   /*
+   * Philosophy だけ縦幅を+1cm。CEO指定の値をそのまま `cm` 単位で書く
+   * (ブラウザは1cm=96px/2.54を固定換算するので、意図が数値に残る)。
+   */
+  @media (min-width: 1024px) {
+    section[data-chapter="philosophy"] {
+      min-height: calc(100svh + 1cm);
+    }
+  }
+
+  /*
    * Services の地。
    *
    * 黒(#0d0d0d)をやめ、暖色寄りのダークグレーにする。
@@ -286,10 +296,13 @@
    * 明転→暗転の切り替わりが「別のサイトに来た」ではなく
    * 「同じ空間の照明が落ちた」ように繋がる。
    *
-   * 文字(#ededea)とのコントラスト比は 14.9:1 で WCAG AAA を満たす。
+   * #1c1a17 は Contact との地の差が小さすぎて章の切れ目が
+   * 弱かった(実測フィードバック「グレーの色も明るく」)。
+   * さらに持ち上げ、文字(#ededea)とのコントラスト比は
+   * 約12.8:1 で引き続き WCAG AAA を満たす。
    */
   section[data-chapter="services"] {
-    background: #1c1a17;
+    background: #2a2620;
   }
 
   /* 下端だけ沈めて Footer の地(void)へ繋ぐ */

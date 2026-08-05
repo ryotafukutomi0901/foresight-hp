@@ -2,7 +2,6 @@
 
 import { useEffect, type RefObject } from "react";
 import { gsap, ScrollTrigger } from "@/hooks/useGsap";
-import { stagger as STAGGER } from "@/lib/tokens";
 
 /*
  * 文章をスクロールに合わせて上から順に出す、共通の仕掛け。
@@ -59,17 +58,36 @@ export function useReveal(
       start,
       once: true,
       /*
-       * 同時に画面へ入った要素だけを順に出す。
-       * batch は「まとめて入ってきた分」を配列で渡してくるので、
-       * 画面の下の方にある要素まで先走って出ることはない。
+       * batch のデフォルト interval(0.1s)だと、要素同士が画面へ
+       * 入るタイミングがそれより離れているだけで別々の onEnter 呼び出しに
+       * 割れてしまい、下の stagger が一切効かなくなる
+       * (実測: opacityを100msおきに計測して確認。要素間の間隔が
+       * スクロール速度まかせになり、stagger の値を変えても
+       * 見た目が変わらなかった)。
+       *
+       * 0.4s まで広げ、通常のスクロール速度なら章内の data-reveal が
+       * 確実に同じ batch へまとまるようにする。まとまった上で
+       * 下の stagger が「上から順に、間を置いて」の間隔を作る。
        */
+      interval: 0.4,
       onEnter: (batch) =>
         gsap.to(batch, {
           autoAlpha: 1,
           y: 0,
-          duration: 0.9,
+          duration: 1.0,
           ease: "brandOut",
-          stagger: STAGGER.line,
+          /*
+           * brandOut(0.16,1,0.3,1)は立ち上がりが非常に速く、
+           * duration の頭2〜3割でほぼ見た目上は出終わる。
+           * 0.08はおろか0.2でも、次の要素が「前の要素がまだ見た目に
+           * 動いている途中」で始まってしまい、結局まとまって
+           * 出たように見えていた(実測: opacityを100msおきに計測して確認)。
+           *
+           * ease が視覚的に収束するのにかかる時間より
+           * stagger を大きく取り、「1つ出て、少し間があって、次が出る」を
+           * はっきり体感できるようにする。
+           */
+          stagger: 0.38,
           overwrite: true,
         }),
     });

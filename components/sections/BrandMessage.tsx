@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { useReveal } from "@/hooks/useReveal";
+import { useDrawRule } from "@/hooks/useDrawRule";
 import { BRAND_MESSAGE } from "@/lib/content";
 
 /*
@@ -12,12 +13,8 @@ import { BRAND_MESSAGE } from "@/lib/content";
  * ═══════════════════════════════════════════════════════════════
  *  構造はリファレンス(izanami)の Philosophy に倣う。
  *
- *    ・見出しは画面に**貼り付いたまま**、本文だけが流れる
  *    ・章の前に1画面分近い余白を取り、速度を落としてから読ませる
  *    ・行間を広く取る(2.4倍)
- *
- *  貼り付けるのは装飾ではなく読ませ方の設計。見出しが残り続けると、
- *  長い本文を読んでいる間も「何の話か」が視界から消えない。
  * ═══════════════════════════════════════════════════════════════
  *
  * 車両は線画を1枚だけ、本文の背後に沈めて置く。主張させない。
@@ -131,6 +128,8 @@ export default function BrandMessage() {
 
   /* 本文はすべて共通の仕掛けで、上から順に出す */
   useReveal(scope);
+  /* 章頭の罫線はスクロールに連動して左→右に伸ばす */
+  useDrawRule(scope);
 
   return (
     <section
@@ -146,6 +145,19 @@ export default function BrandMessage() {
         data-bm-art
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-1/2 w-[110%] max-w-[1400px] -translate-x-1/2 -translate-y-1/2 opacity-0 lg:w-[82%]"
+        style={{
+          /*
+           * opacity 0.4 まで落としても、車体は本文の列(左側)と
+           * 位置が重なるため線がまだ字面を横切って見えた(実測)。
+           * サイズと配置(中央寄せ)自体はCEOの「サイズ感はいい」を
+           * 尊重して変えず、文章の列にだけマスクを掛けて画を消す。
+           * 右側(道・光の抜けている領域)は本文が無いのでそのまま見せる。
+           */
+          maskImage:
+            "linear-gradient(to right, transparent 0%, transparent 40%, black 64%, black 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent 0%, transparent 40%, black 64%, black 100%)",
+        }}
       >
         {/*
           素材は黒い線 / 背景透過(ffmpegのcolorkeyで白を抜いてある)。
@@ -156,10 +168,6 @@ export default function BrandMessage() {
           alt=""
           width={1672}
           height={941}
-          /*
-            文章の背後に置くので、線が本文を横切っても読めるところまで
-            落とす。実測で0.9のままだと車体の線が本文に重なって読みにくい。
-          */
           className="h-auto w-full opacity-[0.4]"
         />
       </div>
@@ -170,16 +178,12 @@ export default function BrandMessage() {
             {BRAND_MESSAGE.label}
           </span>
           <span
-            data-reveal
+            data-chapter-rule
             aria-hidden
-            className="h-px flex-1 bg-rule-strong"
+            className="h-[2px] flex-1 bg-ink-faint"
           />
         </div>
 
-        {/*
-          見出しを sticky で留める。本文がその下を流れていく間、
-          「何の話か」が視界から消えない。
-        */}
         <div className="mt-14">
           {/* 日本語の小見出し。英字の大見出しの上に置いて、章の主題を先に伝える */}
           <p data-reveal className="text-display-s font-normal text-ink-soft">
@@ -225,10 +229,7 @@ export default function BrandMessage() {
           </p>
         </div>
 
-        {/*
-          本文。見出しが留まっている間にこれが流れてくる。
-          行間2.4倍は読む速度そのものを落とすための値。
-        */}
+        {/* 行間2.4倍は読む速度そのものを落とすための値 */}
         <p
           data-reveal
           className="mt-14 max-w-xl text-sm leading-[2.4] text-ink-soft lg:mt-16"

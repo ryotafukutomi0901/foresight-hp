@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { gsap, useScopedGsap } from "@/hooks/useGsap";
 import { useReveal } from "@/hooks/useReveal";
+import { useDrawRule } from "@/hooks/useDrawRule";
 import { CONTACT } from "@/lib/content";
 
 type Status = "idle" | "sending" | "sent" | "error";
@@ -57,6 +58,8 @@ export default function Contact() {
 
   /* 文章はすべて共通の仕掛けで、上から順に出す */
   useReveal(scope);
+  /* 章頭の罫線はスクロールに連動して左→右に伸ばす */
+  useDrawRule(scope);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -108,9 +111,9 @@ export default function Contact() {
         <div className="flex items-center gap-5">
           <span data-reveal className="label text-ink">{CONTACT.label}</span>
           <span
-            data-reveal
+            data-chapter-rule
             aria-hidden
-            className="h-px flex-1 origin-left bg-rule-strong"
+            className="h-[2px] flex-1 bg-ink-faint"
           />
         </div>
 
