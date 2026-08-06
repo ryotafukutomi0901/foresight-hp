@@ -308,19 +308,11 @@ export default function Services() {
     <section
       ref={scope}
       data-chapter="services"
+      data-tone="light"
       id="services"
       aria-labelledby="services-heading"
       className="section-y relative overflow-hidden"
     >
-      {/*
-        常時ゆっくりドリフトする製図の格子。
-        文字マーキーは廃案(別案希望)、代わりにこの章の語彙である
-        「製図・走査線」の系統で、写真の代わりに地そのものを動かす。
-        操作しなくても「この章だけ動いている」ことが伝わるよう、
-        タブ操作(走査線・ゴースト数字)より奥・より低い解像度で動く。
-      */}
-      <div aria-hidden className="services-blueprint pointer-events-none absolute inset-0 z-0" />
-
       <div className="container-x relative z-10">
         <span data-chapter-rule aria-hidden className="block h-[2px] w-full bg-ink-faint" />
 

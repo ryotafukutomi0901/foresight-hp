@@ -263,16 +263,23 @@
   }
 
   /*
-   * Philosophy だけ明転する。
+   * Philosophy と Services を明転させる。
    *
    * 地の #f5f1eb はCEOがFigmaで指定した暖色のクリーム。
    * 上の High Gloss Mono は「中間色を作らない」方針だが、
-   * これは指定色なので例外として1箇所だけ持つ。**他所へ広げないこと。**
+   * これは指定色なので例外として持つ。**この2箇所以外へは広げないこと。**
+   *
+   * 以前は Services だけ別のグレー(#797982)を指定色として持っていたが、
+   * 「bgをフィロソフィと統一」の指示で撤回。Philosophyと地の値を
+   * 完全に共有することで、文字・罫線・タブの下線・ゴースト数字まで
+   * [data-tone="light"] のトークン差し替え1本に乗る
+   * (Servicesだけ ink 系トークンを個別に上書きしていた前回のやり方は不要になった)。
    *
    * 文字色などは [data-tone="light"] のトークン差し替えに乗るので、
    * ここでは地だけを上書きする(mono-200 #f2f2f2 → クリーム)。
    */
-  section[data-chapter="philosophy"][data-tone="light"] {
+  section[data-chapter="philosophy"][data-tone="light"],
+  section[data-chapter="services"][data-tone="light"] {
     --color-void: #f5f1eb;
     --color-base: #f5f1eb;
     background: #f5f1eb;
@@ -286,29 +293,6 @@
     section[data-chapter="philosophy"] {
       min-height: calc(100svh + 1cm);
     }
-  }
-
-  /*
-   * Services の地。#797982 はCEO指定値。
-   *
-   * High Gloss Mono は本来「5色のみ、中間色を作らない」方針だが、
-   * Philosophyのクリームに続く2つ目の指定色として例外的に持つ。
-   * ここも**他所へは広げないこと**。
-   *
-   * ⚠️ #797982 は中間の明度(相対輝度 約0.19)で、既存の
-   * --color-ink-soft(#9b9b98)・--color-ink-faint(#6a6a68)・
-   * --color-rule* は元々「ほぼ黒の地」を前提にした値のため、
-   * このセクションに限りコントラスト比が1.5:1前後まで落ち、
-   * 実質見えなくなる(実測)。文字トークンをこのセクションだけ
-   * 上書きして読める状態を保つ。地の指定色そのものは変えない。
-   */
-  section[data-chapter="services"] {
-    background: #797982;
-    --color-ink: #ffffff;
-    --color-ink-soft: #e6e6e4;
-    --color-ink-faint: #cacac7;
-    --color-rule: #5c5c64;
-    --color-rule-strong: #47474e;
   }
 
   /* 下端だけ沈めて Footer の地(void)へ繋ぐ */
@@ -402,34 +386,6 @@
   .line-mask {
     display: block;
     overflow: hidden;
-  }
-
-  /*
-   * Services の地を常時ゆっくりドリフトする製図の格子。
-   *
-   * 以前は文字のマーキー帯を流していたが、別案が欲しいとのことで
-   * 廃止。代わりにこの章の語彙である「製図・走査線」の系統で、
-   * 地そのものに細い格子を敷いて動かす。文字を伴わない分、
-   * どんな内容のタブが開いていても浮かない。
-   *
-   * background-position だけを動かすCSSアニメーションにして
-   * GSAP/JSを使わない。合成レイヤーの平行移動だけなので
-   * メインスレッドを使わず fps 予算を消費しない。
-   */
-  .services-blueprint {
-    background-image:
-      linear-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
-    background-size: 72px 72px;
-    animation: services-blueprint-drift 50s linear infinite;
-  }
-  @keyframes services-blueprint-drift {
-    from {
-      background-position: 0 0;
-    }
-    to {
-      background-position: 720px 432px;
-    }
   }
 }
 
