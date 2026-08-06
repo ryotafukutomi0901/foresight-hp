@@ -289,20 +289,26 @@
   }
 
   /*
-   * Services の地。
+   * Services の地。#797982 はCEO指定値。
    *
-   * 黒(#0d0d0d)をやめ、暖色寄りのダークグレーにする。
-   * Philosophy のクリーム(#f5f1eb)と同じ暖色の系統に乗せると、
-   * 明転→暗転の切り替わりが「別のサイトに来た」ではなく
-   * 「同じ空間の照明が落ちた」ように繋がる。
+   * High Gloss Mono は本来「5色のみ、中間色を作らない」方針だが、
+   * Philosophyのクリームに続く2つ目の指定色として例外的に持つ。
+   * ここも**他所へは広げないこと**。
    *
-   * #1c1a17 は Contact との地の差が小さすぎて章の切れ目が
-   * 弱かった(実測フィードバック「グレーの色も明るく」)。
-   * さらに持ち上げ、文字(#ededea)とのコントラスト比は
-   * 約12.8:1 で引き続き WCAG AAA を満たす。
+   * ⚠️ #797982 は中間の明度(相対輝度 約0.19)で、既存の
+   * --color-ink-soft(#9b9b98)・--color-ink-faint(#6a6a68)・
+   * --color-rule* は元々「ほぼ黒の地」を前提にした値のため、
+   * このセクションに限りコントラスト比が1.5:1前後まで落ち、
+   * 実質見えなくなる(実測)。文字トークンをこのセクションだけ
+   * 上書きして読める状態を保つ。地の指定色そのものは変えない。
    */
   section[data-chapter="services"] {
-    background: #2a2620;
+    background: #797982;
+    --color-ink: #ffffff;
+    --color-ink-soft: #e6e6e4;
+    --color-ink-faint: #cacac7;
+    --color-rule: #5c5c64;
+    --color-rule-strong: #47474e;
   }
 
   /* 下端だけ沈めて Footer の地(void)へ繋ぐ */
@@ -396,6 +402,34 @@
   .line-mask {
     display: block;
     overflow: hidden;
+  }
+
+  /*
+   * Services の地を常時ゆっくりドリフトする製図の格子。
+   *
+   * 以前は文字のマーキー帯を流していたが、別案が欲しいとのことで
+   * 廃止。代わりにこの章の語彙である「製図・走査線」の系統で、
+   * 地そのものに細い格子を敷いて動かす。文字を伴わない分、
+   * どんな内容のタブが開いていても浮かない。
+   *
+   * background-position だけを動かすCSSアニメーションにして
+   * GSAP/JSを使わない。合成レイヤーの平行移動だけなので
+   * メインスレッドを使わず fps 予算を消費しない。
+   */
+  .services-blueprint {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+    background-size: 72px 72px;
+    animation: services-blueprint-drift 50s linear infinite;
+  }
+  @keyframes services-blueprint-drift {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 720px 432px;
+    }
   }
 }
 

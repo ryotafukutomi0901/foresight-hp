@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import CtaButton from "@/components/ui/CtaButton";
 import { gsap, useScopedGsap, Flip } from "@/hooks/useGsap";
 import { useReveal } from "@/hooks/useReveal";
@@ -53,9 +53,6 @@ export default function Services() {
   /* 下線を滑らせるための参照 */
   const tablistRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
-
-  /* 地に流す背景アニメーション(下記参照)のための参照 */
-  const marqueeRef = useRef<HTMLDivElement>(null);
 
   /*
    * 進んだ/戻ったの向き。出入りの方向を決めるのに使う。
@@ -305,46 +302,6 @@ export default function Services() {
     Flip.from(state, { duration: 0.5, ease: "brandInOut", absolute: false });
   }, [active]);
 
-  /*
-   * 地の奥を常時ゆっくり流れる帯。
-   *
-   * ═══════════════════════════════════════════════════════════════
-   *  この章は写真を使わないので、静止しているとスクロールで
-   *  素通りされやすい(CEOフィードバック「メリハリがなくスルーしがち」)。
-   *  入場時のタブ出現・切替時の走査線+ゴースト数字は
-   *  「操作した時だけ」動くもので、スクロールで通り過ぎるだけの人には
-   *  一度も見えないことがある。
-   *
-   *  常時ループする背景の帯は、操作しなくても「この章だけ動いている」
-   *  ことを体感させる。地に沈む不透明度に抑え、可読性は奪わない。
-   * ═══════════════════════════════════════════════════════════════
-   */
-  const tickerText = useMemo(
-    () =>
-      Array(3)
-        .fill(SERVICES.items.map((it) => it.label).join("   ―   "))
-        .join("   ―   "),
-    [],
-  );
-
-  useEffect(() => {
-    const el = marqueeRef.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    /* 同じ内容を2枚並べておき、幅の半分だけ動かして継ぎ目を消す(ループ) */
-    const tween = gsap.to(el, {
-      xPercent: -50,
-      duration: 34,
-      ease: "none",
-      repeat: -1,
-    });
-
-    return () => {
-      tween.kill();
-    };
-  }, []);
-
   const item = SERVICES.items[active];
 
   return (
@@ -355,20 +312,14 @@ export default function Services() {
       aria-labelledby="services-heading"
       className="section-y relative overflow-hidden"
     >
-      {/* 常時ループする帯。地に沈める。他の文章・タブより後ろに置く */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-6 z-0 overflow-hidden opacity-[0.05] lg:bottom-10"
-      >
-        <div ref={marqueeRef} className="flex w-max whitespace-nowrap">
-          <span className="font-latin pr-12 text-[3.25rem] font-semibold uppercase leading-none tracking-[0.06em] text-ink sm:text-[4.5rem]">
-            {tickerText}
-          </span>
-          <span className="font-latin pr-12 text-[3.25rem] font-semibold uppercase leading-none tracking-[0.06em] text-ink sm:text-[4.5rem]">
-            {tickerText}
-          </span>
-        </div>
-      </div>
+      {/*
+        常時ゆっくりドリフトする製図の格子。
+        文字マーキーは廃案(別案希望)、代わりにこの章の語彙である
+        「製図・走査線」の系統で、写真の代わりに地そのものを動かす。
+        操作しなくても「この章だけ動いている」ことが伝わるよう、
+        タブ操作(走査線・ゴースト数字)より奥・より低い解像度で動く。
+      */}
+      <div aria-hidden className="services-blueprint pointer-events-none absolute inset-0 z-0" />
 
       <div className="container-x relative z-10">
         <span data-chapter-rule aria-hidden className="block h-[2px] w-full bg-ink-faint" />
@@ -472,7 +423,7 @@ export default function Services() {
 
             <p
               data-sv-panel-item
-              className="mt-8 max-w-xl text-sm leading-[2.2] text-ink-soft"
+              className="mt-8 max-w-xl text-base leading-[2.2] text-ink-soft"
             >
               {item.body}
             </p>
@@ -507,7 +458,7 @@ export default function Services() {
                 <li
                   key={pt}
                   data-sv-panel-item
-                  className="flex items-baseline gap-4 border-b border-rule py-5 text-sm text-ink-soft"
+                  className="flex items-baseline gap-4 border-b border-rule py-5 text-base text-ink-soft"
                 >
                   <span aria-hidden className="text-ink-faint">
                     ・

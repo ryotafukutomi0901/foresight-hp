@@ -34,7 +34,7 @@ type Options = {
 
 export function useReveal(
   scope: RefObject<HTMLElement | null>,
-  { selector = "[data-reveal]", start = "top 88%", y = 18 }: Options = {},
+  { selector = "[data-reveal]", start = "top 88%", y = 26 }: Options = {},
 ) {
   useEffect(() => {
     const root = scope.current;
@@ -74,20 +74,19 @@ export function useReveal(
         gsap.to(batch, {
           autoAlpha: 1,
           y: 0,
-          duration: 1.0,
-          ease: "brandOut",
+          duration: 1.4,
           /*
-           * brandOut(0.16,1,0.3,1)は立ち上がりが非常に速く、
-           * duration の頭2〜3割でほぼ見た目上は出終わる。
-           * 0.08はおろか0.2でも、次の要素が「前の要素がまだ見た目に
-           * 動いている途中」で始まってしまい、結局まとまって
-           * 出たように見えていた(実測: opacityを100msおきに計測して確認)。
-           *
+           * brandOut(0.16,1,0.3,1)は立ち上がりが鋭く、「動いた」ことが
+           * 先に伝わる硬い出方だった。sine.out は加速も減速も緩やかで、
+           * 「フワッと」というフィードバック通りの柔らかい着地になる。
+           */
+          ease: "sine.out",
+          /*
            * ease が視覚的に収束するのにかかる時間より
            * stagger を大きく取り、「1つ出て、少し間があって、次が出る」を
            * はっきり体感できるようにする。
            */
-          stagger: 0.38,
+          stagger: 0.42,
           overwrite: true,
         }),
     });

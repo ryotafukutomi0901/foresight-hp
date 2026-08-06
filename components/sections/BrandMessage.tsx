@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Image from "next/image";
-import { gsap, useScopedGsap } from "@/hooks/useGsap";
+import { gsap, useScopedGsap, SplitText } from "@/hooks/useGsap";
 import { useReveal } from "@/hooks/useReveal";
 import { useDrawRule } from "@/hooks/useDrawRule";
 import { BRAND_MESSAGE } from "@/lib/content";
@@ -122,6 +122,36 @@ export default function BrandMessage() {
             },
           },
         );
+
+        /*
+         * 日本語の文章(小見出し・2行の一文・本文)だけは、共通の
+         * useReveal(文章1本ごとにフェード)ではなく行ごとに出す。
+         *
+         * ═══════════════════════════════════════════════════════
+         *  「文章ごとじゃなく行ごとに」というフィードバック。
+         *  この章はタイプライターで1文字ずつ打つ大見出しの直後に
+         *  和文が続くので、和文だけ塊でフェードすると急に雑に見える。
+         *
+         *  SplitText の type:"lines" + mask:"lines" で行ごとに
+         *  overflow:hidden のマスクを自動で被せ、下から1行ずつ
+         *  現れるようにする。行数は表示幅で変わる(実際に描画された
+         *  行を割るので、レスポンシブでも崩れない)。
+         * ═══════════════════════════════════════════════════════
+         */
+        const lineTargets = gsap.utils.toArray<HTMLElement>(
+          scope.current?.querySelectorAll("[data-bm-line]") ?? [],
+        );
+        lineTargets.forEach((el) => {
+          const split = SplitText.create(el, { type: "lines", mask: "lines" });
+          gsap.from(split.lines, {
+            yPercent: 110,
+            autoAlpha: 0,
+            duration: 1.3,
+            ease: "sine.out",
+            stagger: 0.22,
+            scrollTrigger: { trigger: el, start: "top 90%", once: true },
+          });
+        });
       },
     );
   }, []);
@@ -144,20 +174,19 @@ export default function BrandMessage() {
       <div
         data-bm-art
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 w-[110%] max-w-[1400px] -translate-x-1/2 -translate-y-1/2 opacity-0 lg:w-[82%]"
-        style={{
-          /*
-           * opacity 0.4 まで落としても、車体は本文の列(左側)と
-           * 位置が重なるため線がまだ字面を横切って見えた(実測)。
-           * サイズと配置(中央寄せ)自体はCEOの「サイズ感はいい」を
-           * 尊重して変えず、文章の列にだけマスクを掛けて画を消す。
-           * 右側(道・光の抜けている領域)は本文が無いのでそのまま見せる。
-           */
-          maskImage:
-            "linear-gradient(to right, transparent 0%, transparent 40%, black 64%, black 100%)",
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent 0%, transparent 40%, black 64%, black 100%)",
-        }}
+        /*
+         * マスクで文章側を透明にする案は、車体そのものが素材の
+         * 左寄り(横幅の15〜53%あたり)にあるため、マスクの境界と
+         * 車体が被って車の前半分ごと消えてしまっていた(実測: 車が
+         * 欠けて見えると指摘を受けた)。
+         *
+         * マスクはやめ、素材ごと右へ寄せて「車の中心が画面の72%
+         * あたり」に来るよう left を計算し直した。文章の列
+         * (概ね〜45%)より右側に車が完全に収まるので、マスクなしで
+         * 車の全体像が欠けずに見える。右側の道・陽光が section の
+         * overflow-hidden で切れるのは意匠として許容する。
+         */
+        className="pointer-events-none absolute left-1/2 top-1/2 w-[110%] max-w-[1400px] -translate-x-1/2 -translate-y-1/2 opacity-0 lg:left-[85%] lg:w-[82%]"
       >
         {/*
           素材は黒い線 / 背景透過(ffmpegのcolorkeyで白を抜いてある)。
@@ -186,7 +215,7 @@ export default function BrandMessage() {
 
         <div className="mt-14">
           {/* 日本語の小見出し。英字の大見出しの上に置いて、章の主題を先に伝える */}
-          <p data-reveal className="text-display-s font-normal text-ink-soft">
+          <p data-bm-line className="text-display-s font-normal text-ink-soft">
             {BRAND_MESSAGE.lead}
           </p>
 
@@ -220,7 +249,7 @@ export default function BrandMessage() {
           </h2>
 
           <p
-            data-reveal
+            data-bm-line
             className="mt-12 max-w-lg text-body-l leading-loose text-ink-soft"
           >
             {BRAND_MESSAGE.sub[0]}
@@ -231,8 +260,8 @@ export default function BrandMessage() {
 
         {/* 行間2.4倍は読む速度そのものを落とすための値 */}
         <p
-          data-reveal
-          className="mt-14 max-w-xl text-sm leading-[2.4] text-ink-soft lg:mt-16"
+          data-bm-line
+          className="mt-14 max-w-xl text-base leading-[2.4] text-ink-soft lg:mt-16"
         >
           {BRAND_MESSAGE.body}
         </p>

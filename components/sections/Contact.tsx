@@ -150,7 +150,7 @@ export default function Contact() {
             </p>
 
             <p data-reveal
-            className="mt-8 max-w-md text-sm leading-loose text-ink-soft">
+            className="mt-8 max-w-md text-base leading-loose text-ink-soft">
               {CONTACT.body}
             </p>
           </div>
