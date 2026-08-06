@@ -52,7 +52,18 @@ export default function HeroVideo() {
   }, []);
 
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div
+      aria-hidden
+      /*
+       * lg未満: 映像とコピーを上下に分ける(実測: 幅が無い画面では
+       * 右寄せの映像とコピーの左寄せが両立せず、字が車体に埋もれて
+       * 読めなくなっていた)。ここでは絶対配置をやめ、通常フローの
+       * ブロックとしてセクション先頭に置く。
+       *
+       * lg以上: 従来通り、セクション全体に敷く背景として絶対配置に戻す。
+       */
+      className="pointer-events-none relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/10] lg:absolute lg:inset-0 lg:aspect-auto"
+    >
       {/*
         映像は画面いっぱいに敷かず、**右側だけ**に置く。
 
@@ -107,9 +118,12 @@ export default function HeroVideo() {
         「黒い帯にテキストが乗っただけ」の絵になる。
         車体の線がうっすら透ける程度まで薄くして、
         映像とコピーが同じ画面に居る状態を保つ。
+
+        lg未満はコピーを映像の下へ分けたので、文字を読ませるための
+        減光がそもそも要らない。中途半端に暗い映像になるだけなので外す。
       */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 hidden lg:block"
         style={{
           background:
             "linear-gradient(90deg, rgba(5,5,6,0.92) 0%, rgba(5,5,6,0.78) 20%, rgba(5,5,6,0.42) 34%, rgba(5,5,6,0.08) 50%, rgba(5,5,6,0) 62%)",

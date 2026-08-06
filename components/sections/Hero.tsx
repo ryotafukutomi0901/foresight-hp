@@ -147,14 +147,19 @@ export default function Hero() {
       ref={scope}
       id="top"
       aria-labelledby="hero-heading"
-      className="relative flex min-h-[100svh] w-full items-center overflow-hidden pb-24 pt-32"
+      className="relative flex min-h-[100svh] w-full flex-col items-center overflow-hidden pb-24 pt-32 lg:justify-center"
     >
       {/*
-        背景の映像。車が右から走ってきて停まり、ライトが灯る。
-        テキストはこの上に重なる(z-10)。
+        lg未満: 映像とコピーが同じ画面で重なると、狭い幅では
+        スクリムだけでは読めなくなる(実測)。HeroVideo側で
+        通常フローのブロックに切り替えており、ここでは並び順が
+        そのまま「映像→コピー」の上下2段になる。
+
+        lg以上: HeroVideo が絶対配置の背景に戻るので、
+        このコピーだけが実質的な flex item として中央に来る。
       */}
       <HeroVideo />
-      <div className="container-x relative z-10">
+      <div className="container-x relative z-10 mt-10 lg:mt-0">
         <div className="lg:max-w-[52%]">
           <p data-hero-en className="label text-ink-faint">
             {HERO.en}
@@ -205,9 +210,8 @@ export default function Hero() {
       <div
         data-hero-cue
         aria-hidden
-        className="pointer-events-none absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-3"
+        className="pointer-events-none absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center"
       >
-        <span className="label text-ink-faint">{HERO.scrollCue}</span>
         <span
           data-hero-cue-bar
           className="block h-10 w-px origin-bottom bg-rule-strong"
