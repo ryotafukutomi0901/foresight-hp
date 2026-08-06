@@ -166,13 +166,21 @@ export default function OpeningSequence() {
       className="fixed inset-0 z-[100] overflow-hidden bg-void"
     >
       {/*
-        動画は画面全体を覆う。object-cover で縦横比の違いを吸収し、
-        どの端末でもヘッドライトが中央に来るようにする。
+        object-cover で縦横比の違いを吸収する設計だったが、素材は
+        16:9(1280×720)。縦長のスマホ画面(例: 390×844)では高さに
+        合わせて拡大されるため、幅は表示領域の1/4程度しか映らず、
+        車の全景が failsを失って「白く光る何か」にしか見えなかった
+        (実測)。
+
+        object-contain に変え、常に全景を見せる。素材の地は純黒
+        (bg-void と同色)なので、余白にできる上下左右の帯は
+        ページの地にそのまま溶ける。デスクトップでも比率差はごく
+        小さく(1440×900で上下45pxずつ程度)、印象はほぼ変わらない。
       */}
       <video
         ref={video}
         data-opening-video
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-contain"
         src="/video/hero-ignition.mp4"
         muted
         playsInline

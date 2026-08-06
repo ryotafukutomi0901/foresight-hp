@@ -65,7 +65,7 @@ export default function HeroVideo() {
       className="pointer-events-none relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/10] lg:absolute lg:inset-0 lg:aspect-auto"
     >
       {/*
-        映像は画面いっぱいに敷かず、**右側だけ**に置く。
+        lg以上: 映像は画面いっぱいに敷かず、**右側だけ**に置く。
 
         素材は車がフレーム全体を占めており、object-cover で敷くと
         左のコピー領域まで車体が侵してくる(実測: 見出しの裏に
@@ -74,28 +74,14 @@ export default function HeroVideo() {
         素材の地が純黒なので、コンテナを小さくしても継ぎ目は見えない。
         レターボックスの黒帯がそのままページの地に溶ける。
         これが「黒地の素材」を扱えるときの一番きれいな解き方。
+
+        lg未満: コピーは映像の下に分けたので「右側だけに置く」構図は
+        不要。マスクで縁を透明にフェードさせる作りだと、枠の外側に
+        煙(素材に焼き込み済み)がぼんやり滲んで見え、地の黒との境目が
+        曖昧な「ボヤっとしたアニメーション」に見えていた(実測)。
+        枠いっぱいに敷いてマスクを外し、境界をはっきりさせる。
       */}
-      <div
-        /*
-         * コンテナを**映像と同じ比率**にする。
-         *
-         * 全高のコンテナに object-contain で入れると、上下に
-         * レターボックスができる。マスクはコンテナの端に掛かるので
-         * 映像の実際の端(帯の境界)には届かず、境界線が残った(実測)。
-         *
-         * 比率を合わせれば余白が生まれず、マスクが映像の端に一致する。
-         */
-        className="absolute right-0 top-1/2 aspect-[16/9] w-[104%] -translate-y-1/2 sm:w-[88%] lg:w-[68%]"
-        style={{
-          /* 上下左を溶かし、ページの地に continuous に繋げる */
-          maskImage:
-            "linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%), linear-gradient(to right, transparent 0%, black 30%, black 100%)",
-          WebkitMaskImage:
-            "linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%), linear-gradient(to right, transparent 0%, black 30%, black 100%)",
-          maskComposite: "intersect",
-          WebkitMaskComposite: "source-in",
-        }}
-      >
+      <div className="hero-video-frame absolute inset-0 lg:inset-auto lg:right-0 lg:top-1/2 lg:aspect-[16/9] lg:w-[68%] lg:-translate-y-1/2">
         <video
           ref={video}
           src={SRC}
@@ -107,7 +93,7 @@ export default function HeroVideo() {
            * 繰り返すと車が瞬間移動して戻ることになる。
            * 停止した最終フレームがそのままHeroの絵になる。
            */
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover object-[center_38%] lg:object-center"
         />
       </div>
 

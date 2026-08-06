@@ -183,15 +183,19 @@ export default function BrandMessage() {
          * lg以上: マスクはやめ、素材ごと右へ寄せて「車の中心が画面の
          * 72%あたり」に来るよう left を計算し直した。文章の列
          * (概ね〜45%)より右側に車が完全に収まるので、マスクなしで
-         * 車の全体像が欠けずに見える。右側の道・陽光が section の
-         * overflow-hidden で切れるのは意匠として許容する。
+         * 車の全体像が欠けずに見える。
+         *
+         * ただし幅82%のままだと右端が画面の126%まで出て、道の先の
+         * 太陽が section の overflow-hidden で切れていた(指摘を受けて
+         * 修正)。車の位置(中心65%)は保ったまま幅を50%まで縮め、
+         * 右端を画面の98%に収めて太陽まで全部見えるようにする。
          *
          * lg未満: 文章が画面幅いっぱいに広がり、image を隣に置く
          * 余白が無い(実測: 同じ絶対配置のままだと mobile/tablet でも
          * 文章と車が重なっていた)。背景として敷くのをやめ、
          * 見出しの上に独立した挿絵として通常フローに置く。
          */
-        className="pointer-events-none relative mx-auto mb-10 w-full max-w-sm opacity-0 lg:absolute lg:left-[85%] lg:top-1/2 lg:mb-0 lg:w-[82%] lg:max-w-[1400px] lg:-translate-x-1/2 lg:-translate-y-1/2"
+        className="pointer-events-none relative mx-auto mb-10 w-full max-w-sm opacity-0 lg:absolute lg:left-[73%] lg:top-1/2 lg:mb-0 lg:w-[50%] lg:max-w-[1400px] lg:-translate-x-1/2 lg:-translate-y-1/2"
       >
         {/*
           素材は黒い線 / 背景透過(ffmpegのcolorkeyで白を抜いてある)。

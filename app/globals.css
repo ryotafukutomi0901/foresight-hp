@@ -387,6 +387,27 @@
     display: block;
     overflow: hidden;
   }
+
+  /*
+   * Hero動画(lg以上)の縁を透明にフェードさせるマスク。
+   *
+   * lg未満はコピーを映像の下に分けたため、この縁のフェードが
+   * 逆に「地の黒との境目が曖昧なボヤっとしたアニメーション」に
+   * 見えてしまっていた(実測)。lg以上(車を右寄せでコピーに重ねる
+   * 従来の構図)でだけ効かせる。
+   */
+  @media (min-width: 1024px) {
+    .hero-video-frame {
+      mask-image:
+        linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%),
+        linear-gradient(to right, transparent 0%, black 30%, black 100%);
+      -webkit-mask-image:
+        linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%),
+        linear-gradient(to right, transparent 0%, black 30%, black 100%);
+      mask-composite: intersect;
+      -webkit-mask-composite: source-in;
+    }
+  }
 }
 
 /*
