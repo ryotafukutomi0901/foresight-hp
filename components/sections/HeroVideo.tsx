@@ -23,6 +23,11 @@ import { onOpeningDone } from "@/lib/sequence";
  * 再生開始はOpening(幕)の終了に同期させる。幕の裏で先に走らせると、
  * 幕が開いた瞬間には停止済みの車が映ってしまい、
  * 「走ってきて停まる」という最初の1カットが失われる。
+ *
+ * markOpeningDone() は OpeningSequence.tsx 側で、白(flash)が完全に
+ * 引ききったタイミングに合わせて呼ばれる(以前は引き始めと同時に
+ * 呼んでいたため、幕が開いた瞬間には車がもう到着していた。
+ * 指摘を受けて OpeningSequence.tsx 側の発火位置を直した)。
  */
 
 const SRC = "/video/hero-suv.mp4";

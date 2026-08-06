@@ -21,7 +21,8 @@ import { settleOpeningStage } from "@/lib/openingStage";
  *  0.4–4.4  動画本編（点灯 → 前進 → ヘッドライトへズーム）
  *  4.0–4.8  白へ収束。動画の終端はまだ光が画面を覆いきらないため、
  *           ここだけコード側のフラッシュで繋いで完全な白にする
- *  4.8–5.4  白が引いてTOPが現れる。Heroのテキストがこの間に立ち上がる
+ *  4.8–5.4  白が引いてTOPが現れる。白が引ききった直後から
+ *           Hero(映像・テキスト・ヘッダー)が動き出す
  *
  * 動画は Higgsfield で生成し public/video/hero-ignition.mp4 に置いている。
  * 素材の元画像は public/images/foresight/vehicle-parts/03-front-face.webp。
@@ -111,13 +112,23 @@ export default function OpeningSequence() {
         .addLabel("reveal", 4.8)
         // 下のページが見えるよう、動画を先に消す
         .to(clip, { autoAlpha: 0, duration: 0.2 }, "reveal")
-        // Heroのテキスト入場と白の後退を重ねる
-        .add(() => markOpeningDone(), "reveal")
         .to(
           flash,
           { autoAlpha: 0, duration: 0.6, ease: "power2.out" },
           "reveal+=0.05",
         );
+      /*
+       * markOpeningDone() はここでは呼ばない。
+       *
+       * 以前は "reveal"(白が引き始める瞬間)で呼んでいたため、
+       * ここで再生が始まる Hero の車載動画が、幕がまだ大半を覆っている
+       * 間に到着まで進んでしまい、幕が完全に開いた瞬間には
+       * 「もう停まった車」しか見えていなかった(指摘を受けて修正)。
+       *
+       * 下の `onComplete: finish` が白のフェードが終わるタイミング
+       * (=タイムライン終端)で markOpeningDone() を呼ぶので、
+       * 「幕が完全に開いてから車が走ってくる」順序に変わる。
+       */
 
       tl.totalDuration(TOTAL);
 
