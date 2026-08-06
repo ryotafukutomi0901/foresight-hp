@@ -180,13 +180,18 @@ export default function BrandMessage() {
          * 車体が被って車の前半分ごと消えてしまっていた(実測: 車が
          * 欠けて見えると指摘を受けた)。
          *
-         * マスクはやめ、素材ごと右へ寄せて「車の中心が画面の72%
-         * あたり」に来るよう left を計算し直した。文章の列
+         * lg以上: マスクはやめ、素材ごと右へ寄せて「車の中心が画面の
+         * 72%あたり」に来るよう left を計算し直した。文章の列
          * (概ね〜45%)より右側に車が完全に収まるので、マスクなしで
          * 車の全体像が欠けずに見える。右側の道・陽光が section の
          * overflow-hidden で切れるのは意匠として許容する。
+         *
+         * lg未満: 文章が画面幅いっぱいに広がり、image を隣に置く
+         * 余白が無い(実測: 同じ絶対配置のままだと mobile/tablet でも
+         * 文章と車が重なっていた)。背景として敷くのをやめ、
+         * 見出しの上に独立した挿絵として通常フローに置く。
          */
-        className="pointer-events-none absolute left-1/2 top-1/2 w-[110%] max-w-[1400px] -translate-x-1/2 -translate-y-1/2 opacity-0 lg:left-[85%] lg:w-[82%]"
+        className="pointer-events-none relative mx-auto mb-10 w-full max-w-sm opacity-0 lg:absolute lg:left-[85%] lg:top-1/2 lg:mb-0 lg:w-[82%] lg:max-w-[1400px] lg:-translate-x-1/2 lg:-translate-y-1/2"
       >
         {/*
           素材は黒い線 / 背景透過(ffmpegのcolorkeyで白を抜いてある)。
@@ -197,7 +202,7 @@ export default function BrandMessage() {
           alt=""
           width={1672}
           height={941}
-          className="h-auto w-full opacity-[0.4]"
+          className="h-auto w-full opacity-[0.7] lg:opacity-[0.4]"
         />
       </div>
 
