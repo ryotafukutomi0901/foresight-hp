@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   EffectComposer,
@@ -13,7 +13,6 @@ import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 import { viewProgress } from "@/lib/viewProgress";
 import { camera as CAM, dof as DOF } from "@/lib/tokens";
-import NarrativeCorridor from "./NarrativeCorridor";
 
 /*
  * ページ全体に常駐する3D空間。
@@ -385,14 +384,6 @@ export default function Atmosphere({
         <VolumetricFog count={fogCount} />
         <DustField count={dustCount} />
         <LightShafts />
-        {/*
-          回廊はテクスチャ読み込みでサスペンドする。Suspenseで包まないと
-          Canvas配下すべてが巻き添えで描画されず、霧も塵も出なくなる(実測で確認)。
-          fallback:null にして、画像が揃うまで空気だけ先に見せる。
-        */}
-        <Suspense fallback={null}>
-          <NarrativeCorridor />
-        </Suspense>
       </Rig>
       <Cinematic />
     </Canvas>
