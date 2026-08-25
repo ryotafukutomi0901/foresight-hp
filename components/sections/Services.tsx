@@ -324,10 +324,18 @@ export default function Services() {
           id="services-heading"
           className="mt-8 text-display-l font-normal leading-[1.22] text-ink"
         >
-          <span data-reveal className="block">{SERVICES.headline}</span>
+          {/*
+            text-balance: 自動折返しの見出し。幅次第で「を。」のような
+            1〜2文字だけが最終行に取り残される(実測: 390px幅)。
+            改行位置を手で決め打ちすると別の幅でまた同じ問題が起きるため、
+            ブラウザに各行の長さを均そうと試みさせる text-wrap:balance に任せる。
+          */}
+          <span data-reveal className="block text-balance">
+            {SERVICES.headline}
+          </span>
         </h2>
 
-        <p data-reveal className="mt-6 text-body-l text-ink-soft">
+        <p data-reveal className="mt-6 text-body-l text-pretty text-ink-soft">
           {SERVICES.lead}
         </p>
 
@@ -415,7 +423,7 @@ export default function Services() {
 
             <p
               data-sv-panel-item
-              className="mt-8 max-w-xl text-base leading-[2.2] text-ink-soft"
+              className="mt-8 max-w-xl text-pretty text-base leading-[2.2] text-ink-soft"
             >
               {item.body}
             </p>

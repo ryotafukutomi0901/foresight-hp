@@ -73,8 +73,16 @@ export default function Hero() {
      *
      * 車の動きは背景の映像(HeroVideo)が持っているので、ここは
      * 「映像のどこでテキストが現れるか」だけを決める。
-     * 映像は 約2.6秒で停止し、その後ヘッドライトが灯る。
+     * 映像(hero-suv.mp4)は 約2.18秒で停止し、その後ヘッドライトが灯る。
      * テキストはその光に合わせて現れる。
+     *
+     * ⚠️ 素材の冒頭0.42秒(≒10フレーム)は書き出しミスで、停車済みの
+     * 車がそのまま消えてから走行カットへ繋がる二重露光になっていた
+     * (幕が開いた瞬間に「車がいる→消える→走ってくる」と見えてしまう
+     * 不具合として指摘を受けた)。public/video/hero-suv.mp4 側でこの
+     * 冒頭を切り、走行カットの頭から始まるよう書き出し直し済み。
+     * 「約2.6秒で停止」だった元の尺から0.42秒短くなったため、
+     * ここの開始位置も同じだけ前倒しして相対タイミングを保っている。
      */
     const tl = gsap.timeline({ id: "hero-intro", paused: !reduced });
 
@@ -83,7 +91,7 @@ export default function Hero() {
       y: 12,
       duration: 0.9,
       ease: "brandOut",
-    }, reduced ? 0 : 2.2)
+    }, reduced ? 0 : 1.78)
       .from(
         "[data-hero-line]",
         { yPercent: 110, duration: 1.2, ease: "brandOut", stagger: 0.12 },
@@ -181,7 +189,7 @@ export default function Hero() {
 
           <p
             data-hero-sub
-            className="mt-10 max-w-xl text-body-l leading-loose text-ink-soft"
+            className="mt-10 max-w-xl text-pretty text-body-l leading-loose text-ink-soft"
           >
             {HERO.sub[0]}
             <br />

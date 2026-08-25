@@ -259,7 +259,7 @@ export default function BrandMessage() {
 
           <p
             data-bm-line
-            className="mt-12 max-w-lg text-body-l leading-loose text-ink-soft"
+            className="mt-12 max-w-lg text-pretty text-body-l leading-loose text-ink-soft"
           >
             {BRAND_MESSAGE.sub[0]}
             <br />
@@ -270,7 +270,7 @@ export default function BrandMessage() {
         {/* 行間2.4倍は読む速度そのものを落とすための値 */}
         <p
           data-bm-line
-          className="mt-14 max-w-xl text-base leading-[2.4] text-ink-soft lg:mt-16"
+          className="mt-14 max-w-xl text-pretty text-base leading-[2.4] text-ink-soft lg:mt-16"
         >
           {BRAND_MESSAGE.body}
         </p>
